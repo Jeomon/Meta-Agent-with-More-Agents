@@ -1,5 +1,5 @@
 from tenacity import retry,stop_after_attempt,retry_if_exception_type
-from requests import post,RequestException,HTTPError
+from requests import post,get,RequestException,HTTPError
 from src.message import AIMessage,BaseMessage
 from src.inference import BaseInference
 from typing import Generator
@@ -52,6 +52,15 @@ class ChatOllama(BaseInference):
             return (loads(chunk)['message']['content'] for chunk in chunks)
         except HTTPError as err:
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
+    
+    def available_models(self):
+        url='http://localhost:11434/api/tags'
+        headers=self.headers
+        response=get(url=url,headers=headers)
+        response.raise_for_status()
+        models=response.json()
+        return [model['name'] for model in models['models']]
+        
 
 class Ollama(BaseInference):
     def invoke(self, query:str,json=False)->AIMessage:

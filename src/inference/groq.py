@@ -1,13 +1,12 @@
+from requests import post,get,RequestException,HTTPError,ConnectionError
 from tenacity import retry,stop_after_attempt,retry_if_exception_type
-from requests import post,RequestException,HTTPError,ConnectionError
 from src.message import AIMessage,BaseMessage
 from src.inference import BaseInference
-from termcolor import colored
 from typing import Generator
 from json import loads
 
 class ChatGroq(BaseInference):
-    # @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
+    @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
     def invoke(self, messages: list[BaseMessage],json:bool=False)->AIMessage:
         self.headers.update({'Authorization': f'Bearer {self.api_key}'})
         headers=self.headers
@@ -72,3 +71,47 @@ class ChatGroq(BaseInference):
         except HTTPError as err:
             err_object=loads(err.response.text)
             print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')
+    
+    def available_models(self):
+        url='https://api.groq.com/openai/v1/models'
+        self.headers.update({'Authorization': f'Bearer {self.api_key}'})
+        headers=self.headers
+        response=get(url=url,headers=headers)
+        response.raise_for_status()
+        models=response.json()
+        return [model['id'] for model in models['data'] if model['active']]
+
+class AudioGroq(BaseInference):
+    def invoke(self,file:str='', language:str='en', json:bool=False)->AIMessage:
+        self.headers.update({'Authorization': f'Bearer {self.api_key}'})
+        headers=self.headers
+        temperature=self.temperature
+        url=self.base_url or "https://api.groq.com/openai/v1/audio/transcriptions"
+        payload={
+            "model": self.model,
+            "temperature": temperature,
+            "file": self.__read_audio(file),
+            "language": language
+        }
+        if json:
+            payload["response_format"]={
+                "type": "json"
+            }
+        else:
+            payload['response_format']={
+                "type":"text"
+            }
+    
+    def __read_audio(file_name:str):
+        with open(file_name,'rb') as f:
+            audio_data=f.read()
+        return audio_data
+    
+    def available_models(self):
+        url='https://api.groq.com/openai/v1/models'
+        self.headers.update({'Authorization': f'Bearer {self.api_key}'})
+        headers=self.headers
+        response=get(url=url,headers=headers)
+        response.raise_for_status()
+        models=response.json()
+        return [model['id'] for model in models['data'] if model['active']]

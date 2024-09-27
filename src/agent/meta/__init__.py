@@ -11,11 +11,12 @@ from src.agent import BaseAgent
 from termcolor import colored
 
 class MetaAgent(BaseAgent):
-    def __init__(self,llm:BaseInference=None,max_iteration=10,json=False,verbose=False):
+    def __init__(self,llm:BaseInference=None,tools:list=[],max_iteration=10,json=False,verbose=False):
         self.name='Meta Agent'
         self.llm=llm
         self.max_iteration=max_iteration
         self.iteration=0
+        self.tools=tools
         self.graph=self.create_graph()
         self.verbose=verbose
         self.system_prompt=read_markdown_file('./src/agent/meta/prompt.md')
@@ -30,7 +31,7 @@ class MetaAgent(BaseAgent):
         answer=agent_data.get('Answer')
         if not answer:
             content=f'Agent Name: {name}\nDescription: {description}\nTasks: {tasks}\nTool: {tool}'
-            print_stmt=colored(content,color='magenta',attrs=['bold'])
+            print_stmt=colored(content,color='yellow',attrs=['bold'])
         else:
             content=f'Final Answer: {answer}'
             print_stmt=colored(content,color='cyan',attrs=['bold'])
@@ -45,7 +46,7 @@ class MetaAgent(BaseAgent):
         description=agent_data.get('Agent Description')
         instructions=agent_data.get('Tasks')
         # tool=agent_data.get('Tool')
-        agent=ReactAgent(name=name,description=description,instructions=instructions,llm=self.llm,verbose=self.verbose)
+        agent=ReactAgent(name=name,description=description,instructions=instructions,tools=self.tools,llm=self.llm,verbose=self.verbose)
         if self.iteration==1:
             agent_response=agent.invoke(f'Query: {query}')
         else:

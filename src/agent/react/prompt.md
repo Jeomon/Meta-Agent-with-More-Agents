@@ -71,6 +71,8 @@ Once you have gathered all necessary information, either through using a tool or
 <Route>Final</Route>
 ```
 
+*Grasp the complete essence of the `thought` and `observation` of the agentic loop while answering the question to the user.*
+
 ---
 
 ### **How to Operate:**
