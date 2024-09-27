@@ -38,3 +38,35 @@ def file_writer_tool(file_name:str,text:str)->str:
     except Exception as err:
         return f"Error: {err}"
 
+class Weather(BaseModel):
+    location:str=Field(...,description="The location to fetch the weather data for.",example=['London'])
+
+@tool("Weather Tool",args_schema=Weather)
+def weather_tool(location:str):
+    """
+    Fetches the current weather data for a given location using OpenWeatherMap API and returns the formatted results.
+    """
+    import os
+    import requests
+    import json
+    from pydantic import BaseModel
+
+    api_key=os.environ.get('OPENWEATHERMAP_API_KEY')
+    try:
+        base_url = f'http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric'
+        response = requests.get(base_url)
+        weather_data = response.json()
+        if weather_data['cod'] == '404':
+            return f'Error: City {location} not found'
+        elif weather_data['cod'] == '401':
+            return f'Error: Invalid API key'
+        else:
+            main = weather_data['main']
+            temperature = main['temp']
+            humidity = main['humidity']
+            pressure = main['pressure']
+            weather_report = weather_data['weather']
+            return f'City: {location}\nTemperature: {temperature}°C\nHumidity: {humidity}%\nPressure: {pressure} hPa\nWeather Report: {weather_report[0]["description"]}'
+    except Exception as err:
+        return f'Error: {err}'
+

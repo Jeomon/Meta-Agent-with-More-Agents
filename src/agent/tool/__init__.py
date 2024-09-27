@@ -154,15 +154,15 @@ class ToolAgent(BaseAgent):
             },
             {
                 'name':'generate',
-                'description':'This route is used if the query is to create or generate new tool.'
+                'description':'This route is used if the query is to create or generate new tool to serve the purpose.'
             },
             {
                 'name': 'delete',
-                'description':'This route is used if the query is to delete an existing tool.'
+                'description':'This route is used if the query is to delete an existing tool because it is not working as expected and giving errors even after debugging.'
             },
             {
                 'name':'package',
-                'description':'This route is used if the query is to install a missing module or library for the tool.'
+                'description':'This route is used if the query is to install a missing module or library, update or modify an existing library and remove packages for the tool.'
             }
         ]
         llm_router=LLMRouter(routes=routes,llm=self.llm,verbose=False)
