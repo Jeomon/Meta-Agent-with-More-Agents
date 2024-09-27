@@ -2,7 +2,7 @@
 
 ## Description
 
-Meta Agent with More Agents is a project designed to dynamically delegate complex queries to specialized AI agents. At the core of the system is the **Meta Agent**, which orchestrates the problem-solving process by breaking down queries into sub-tasks and assigning each to the most suitable agent. These agents either solve sub-tasks using tools (via the **ReAct Agent**) or by reasoning step-by-step (via the **Chain of Thought Agent**). The Meta Agent continues this iterative process until the entire task is solved, providing the final answer to the user.
+**Meta Agent with More Agents** is a project designed to dynamically delegate complex queries to specialized AI agents. At the core of the system is the **Meta Agent**, which orchestrates the problem-solving process by breaking down queries into sub-tasks and assigning each to the most suitable agent. These agents either solve sub-tasks using tools (via the **ReAct Agent**) or by reasoning step-by-step (via the **Chain of Thought Agent**). The Meta Agent continues this iterative process until the entire task is solved, providing the final answer to the user.
 
 ## Architecture Overview
 
@@ -11,11 +11,11 @@ Meta Agent with More Agents is a project designed to dynamically delegate comple
 The project employs a hierarchical and flexible design:
 
 - **Meta Agent:** Manages the overall query-solving process by determining how to break down tasks and assigning them to appropriate agents based on the task's requirements.
-- **ReAct Agent:** Handles tasks that require external tools. It either executes the query with existing tools or, when needed, requests tool creation or updates via the **Tool Agent**.
-- **Tool Agent:** Dynamically creates or updates tools required by the ReAct Agent to handle specific tasks.
+- **ReAct Agent:** Handles tasks that require external tools. It either executes the query with existing tools or, when needed, requests tool creation, updates, or deletions via the **Tool Agent**.
+- **Tool Agent:** Dynamically creates, updates, or deletes tools required by the ReAct Agent to handle specific tasks. It can remove a tool if it fails to work correctly, doesn't produce the intended output even after debugging, or if the user requests its removal.
 - **Chain of Thought (CoT) Agent:** Processes tasks that do not require external tools, solving them through an iterative reasoning approach.
 
-This architecture ensures smooth communication between agents and enables dynamic tool creation to expand the problem-solving capabilities.
+This architecture ensures smooth communication between agents and enables dynamic tool creation, updating, or deletion to expand the problem-solving capabilities.
 
 ### Workflow
 
@@ -23,17 +23,26 @@ This architecture ensures smooth communication between agents and enables dynami
 2. It analyzes the task and determines whether it requires tools or iterative reasoning:
    - If tools are needed, the **ReAct Agent** is invoked.
    - If no tools are required, the **CoT Agent** is engaged.
-3. If the **ReAct Agent** determines that a required tool is missing, it invokes the **Tool Agent** to create or update the necessary tool.
+3. If the **ReAct Agent** determines that a required tool is missing or not functioning, it invokes the **Tool Agent** to create, update, or delete the tool.
 4. Sub-tasks are solved incrementally, with results passed back to the **Meta Agent**.
 5. The process continues until the entire query is resolved.
 
 ## Key Features
 
 - **Dynamic Task Delegation:** Automatically assigns sub-tasks to specialized agents based on task type and complexity.
-- **Tool Creation & Updates:** The **Tool Agent** can dynamically generate or update tools at runtime based on task requirements.
+- **Tool Creation, Updates, & Deletion:** The **Tool Agent** can dynamically generate, update, or delete tools at runtime based on task requirements or failures.
 - **Iterative Reasoning (Chain of Thought):** Solves tasks without tools by breaking them down into smaller reasoning steps.
 - **Hierarchical Problem Solving:** Complex queries are divided into smaller, manageable sub-tasks that are solved iteratively.
 - **Modular Design:** Agents can be easily expanded or replaced, allowing for flexibility and scalability.
+
+## Tool Deletion Feature
+
+In addition to creating and updating tools, the **Tool Agent** has the ability to delete tools when necessary. The **ReAct Agent** can request the **Tool Agent** to remove a tool under the following circumstances:
+- The tool is failing or not producing the desired output.
+- Debugging efforts are unsuccessful.
+- The user requests to remove the tool.
+
+This ensures that non-functional tools do not hinder the system's performance, and the workflow remains efficient.
 
 ## Installation
 
@@ -53,16 +62,16 @@ python app.py
 
 ## Usage
 
-To start using Meta Agent with More Agents, follow these steps:
+To start using **Meta Agent with More Agents**, follow these steps:
 
 1. Provide a query to the **Meta Agent**.
 2. The **Meta Agent** will create a system prompt and assign the task to either the **ReAct Agent** (if tools are required) or the **CoT Agent** (if the task relies on reasoning).
-3. If tools are missing or outdated, the **Tool Agent** will dynamically create or update them.
+3. If tools are missing, outdated, or non-functional, the **Tool Agent** will dynamically create, update, or remove them.
 4. Sub-tasks are solved iteratively, with results compiled and provided as a final answer to the user.
 
 ### Example Queries
 
-#### Example 1: Trip planning based on the weather data
+#### Example 1: Trip planning based on weather data
 
 ```plaintext
 Enter a query: can tell me the weather in singapore and is it okay to go for a trip in there
