@@ -71,6 +71,9 @@ class ChatGroq(BaseInference):
         except HTTPError as err:
             err_object=loads(err.response.text)
             print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')
+        except ConnectionError as err:
+            print(err)
+        exit()
     
     def available_models(self):
         url='https://api.groq.com/openai/v1/models'
@@ -90,8 +93,10 @@ class AudioGroq(BaseInference):
         payload={
             "model": self.model,
             "temperature": temperature,
-            "file": self.__read_audio(file),
             "language": language
+        }
+        files={
+            'file': self.__read_audio(file)
         }
         if json:
             payload["response_format"]={
@@ -101,6 +106,20 @@ class AudioGroq(BaseInference):
             payload['response_format']={
                 "type":"text"
             }
+        try:
+            response=post(url=url,json=payload,files=files,headers=headers)
+            response.raise_for_status()
+            if json:
+                content=loads(response.text)['text']
+            else:
+                content=response.text
+            return AIMessage(content)
+        except HTTPError as err:
+            err_object=loads(err.response.text)
+            print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')
+        except ConnectionError as err:
+            print(err)
+        exit()
     
     def __read_audio(file_name:str):
         with open(file_name,'rb') as f:

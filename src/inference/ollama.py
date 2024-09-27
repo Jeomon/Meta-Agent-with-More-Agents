@@ -52,6 +52,9 @@ class ChatOllama(BaseInference):
             return (loads(chunk)['message']['content'] for chunk in chunks)
         except HTTPError as err:
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
+        except ConnectionError as err:
+            print(err)
+        exit()
     
     def available_models(self):
         url='http://localhost:11434/api/tags'
@@ -61,7 +64,6 @@ class ChatOllama(BaseInference):
         models=response.json()
         return [model['name'] for model in models['models']]
         
-
 class Ollama(BaseInference):
     def invoke(self, query:str,json=False)->AIMessage:
         headers=self.headers
@@ -104,3 +106,14 @@ class Ollama(BaseInference):
             return (loads(chunk)['response'] for chunk in chunks)
         except HTTPError as err:
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
+        except ConnectionError as err:
+            print(err)
+        exit()
+    
+    def available_models(self):
+        url='http://localhost:11434/api/tags'
+        headers=self.headers
+        response=get(url=url,headers=headers)
+        response.raise_for_status()
+        models=response.json()
+        return [model['name'] for model in models['models']]
