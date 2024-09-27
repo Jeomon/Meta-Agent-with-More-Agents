@@ -44,7 +44,6 @@ def update_tool_to_module(location: str, tool_data: dict):
 
 def remove_tool_from_module(location: str, tool_data: dict):
     # Load the module contents
-    print(tool_data)
     with open(location, 'r') as f:
         module = f.read()
     # Parse the module contents into an AST

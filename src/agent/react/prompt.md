@@ -28,7 +28,7 @@ If you find that the appropriate tool is not available in the `tool box`, or an 
 - **Create a New Tool**: Request a new tool if no suitable tool exists.
 - **Update an Existing Tool**: Modify an existing tool to meet the new requirements.
 - **Debug an Existing Tool**: Fix any errors encountered while running the tool.
-- **Remove a Faulty Tool**: If a tool is not functional even after debugging, request its removal from the `tool box` to avoid future errors.
+- **Remove a Tool**: If a tool is not functional even after debugging or user don't want the tool, request its removal from the `tool box` to avoid future errors.
 - **Install Missing Packages**: Install missing Python packages necessary for the tool's operation.
 
 NOTE: When stating the name of the tool it should be in `<Tool Name> Tool` always.

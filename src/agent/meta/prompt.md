@@ -20,7 +20,7 @@ In case Agent don't require a tool then use the following format and it's using 
     </Tasks>
 </Agent>
 
-In case Agent requires a tool then use the following format and it's using `react` approach to solve the task:
+In case Agent requires a tool then use the following format and it's using `react` approach to solve the task and the agent has also access to Tool Agent hence can create, update, debug or delete the tool:
 
 <Agent>
     <Agent-Name>Name of the Agent (example: Weather Agent, Writer Agent,... etc)</Agent-Name>
