@@ -1,4 +1,4 @@
-from src.agent.cot.utils import extract_from_xml,read_markdown_file
+from src.agent.cot.utils import extract_llm_response,read_markdown_file
 from langchain_core.runnables.graph import MermaidDrawMethod
 from src.message import SystemMessage,HumanMessage
 from src.agent.cot.state import AgentState
@@ -26,9 +26,11 @@ class COTAgent(BaseAgent):
 
     def reason(self,state:AgentState):
         if self.max_iteration>self.iteration:
-            sleep(60) #To prevent from hitting the API rate limit
+            if self.iteration%2!=0:
+                sleep(60) #To prevent from hitting the API rate limit
             llm_response=self.llm.invoke(state['messages'])
-            agent_data=extract_from_xml(llm_response.content)
+            # print(llm_response.content)
+            agent_data=extract_llm_response(llm_response.content)
         else:
             agent_data={
                 'Thought':'I reached the iteration limit',

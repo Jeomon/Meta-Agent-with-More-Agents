@@ -12,6 +12,7 @@ from src.agent import BaseAgent
 from termcolor import colored
 from platform import system
 from getpass import getuser
+from time import sleep
 from os import getcwd
 import json
 
@@ -34,6 +35,8 @@ class ReactAgent(BaseAgent):
         self.add_tools_to_toolbox([user_interface_tool,*tools])
 
     def reason(self,state:AgentState):
+        if self.iteration%2!=0:
+            sleep(60) #To prevent from hitting the API rate limit
         message=self.llm.invoke(state['messages'])
         response=extract_llm_response(message.content)
         # print(message.content)

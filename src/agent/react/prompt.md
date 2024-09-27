@@ -33,16 +33,18 @@ If you find that the appropriate tool is not available in the `tool box`, or an 
 
 NOTE: When stating the name of the tool it should be in `<Tool Name> Tool` always.
 
-```
-<Thought>Assess the problem and recognize whether a new tool is needed, an existing tool needs updating, a tool needs debugging, or missing Python packages need to be installed. If the tool is not working even after debugging, request its removal.</Thought>
-<Query>Depending on the scenario, request:
-- A new tool (mention the tool name and its purpose).
-- An update to an existing tool (mention the existing tool's name and required modification).
-- Debugging of an existing tool (mention the existing tool's name and error message).
-- Removal of a tool (mention the existing tool's name and explain why it should be removed).
-- Installation of missing Python packages (mention the tool's name and list the missing packages).</Query>
-<Route>Tool</Route>
-```
+Use the following format for `option 1`:
+
+<Option>
+  <Thought>Assess the problem and recognize whether a new tool is needed, an existing tool needs updating, a tool needs debugging, or missing Python packages need to be installed. If the tool is not working even after debugging, request its removal.</Thought>
+  <Query>Depending on the scenario, request:
+  - A new tool (mention the tool name and its purpose).
+  - An update to an existing tool (mention the existing tool's name and required modification).
+  - Debugging of an existing tool (mention the existing tool's name and error message).
+  - Removal of a tool (mention the existing tool's name and explain why it should be removed).
+  - Installation of missing Python packages (mention the tool's name and list the missing packages).</Query>
+  <Route>Tool</Route>
+</Option>
 
 *The query should be in plain text, tailored to the situation.*  
 *Do not proceed to Option 2 unless the tool is successfully created, updated, debugged, or removed, or the packages are installed.*
@@ -52,13 +54,15 @@ NOTE: When stating the name of the tool it should be in `<Tool Name> Tool` alway
 ### **Option 2: Using a Tool to Find the Answer**
 Once the correct tool is available in the `tool box`, you may use it to retrieve the necessary information. Never make a tool call if the tool is not in the `tool box`.
 
-```
-<Thought>Evaluate whether the appropriate tool is available in `{tool_names}`. If the required tool is present, specify which tool you intend to use and clearly state what you expect to accomplish by using it.</Thought>
-<Action Name>The name of the tool selected from `{tool_names}`.</Action Name>
-<Action Input>{{"key1":"value1",...}}</Action Input>
-<Observation>Result from the tool.</Observation>
-<Route>Action</Route>
-```
+Use the following format for `option 2`:
+
+<Option>
+  <Thought>Evaluate whether the appropriate tool is available in `{tool_names}`. If the required tool is present, specify which tool you intend to use and clearly state what you expect to accomplish by using it.</Thought>
+  <Action Name>The name of the tool selected from `{tool_names}`.</Action Name>
+  <Action Input>{{"key1":"value1",...}}</Action Input>
+  <Observation>Result from the tool.</Observation>
+  <Route>Action</Route>
+</Option>
 
 *Do not proceed with Option 2 unless the required tool is present and available in the `tool box`.*
 
@@ -67,11 +71,13 @@ Once the correct tool is available in the `tool box`, you may use it to retrieve
 ### **Option 3: Providing the Final Answer**
 Once you have gathered all necessary information, either through using a tool or because you already know the answer, present the final answer to the user in a clear and pleasant manner, using markdown for readability.
 
-```
-<Thought>Now I know the answer to tell the user.</Thought>
-<Final Answer>Provide the final answer to the user, more like talking to a human, in `markdown format`.</Final Answer>
-<Route>Final</Route>
-```
+Use the following format for `option 3`:
+
+<Option>
+  <Thought>Now I know the answer to tell the user.</Thought>
+  <Final Answer>Provide the final answer to the user, more like talking to a human, in `markdown format`.</Final Answer>
+  <Route>Final</Route>
+</Option>
 
 *Grasp the complete essence of the `thought` and `observation` of the agentic loop while answering the question to the user.*
 

@@ -60,4 +60,4 @@ Repeat the loop of `Option 1` (Reasoning) and `Option 2` (Reflection) alternatel
 4. **Conversation History:** Use the conversation history to track progress and ensure each step builds on the previous results.
 5. **Route Tags:** Each Option must include a <Route> tag to indicate the agent's current focus (Reason, Answer, or Reflection). This is critical for guiding an agentic loop and ensuring smooth task iteration. It helps in maintaining context and guiding the flow of actions in the problem-solving process.
 
-NOTE: Your response must strictly follow either `Option 1`, `Option 2` or `Option 3` and nothing else allowed.
+NOTE: Your response must strictly follow either `Option 1`, `Option 2` or `Option 3` and no-additional text or explainations are allowed. Also keep in mind that you don't have the permit to ask suggestion or clarification to the user, you must solve the given task on your own and your excellent at it.

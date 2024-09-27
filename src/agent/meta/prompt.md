@@ -9,7 +9,7 @@ If you determine that additional subtasks need to be solved to move closer to th
 In case Agent don't require a tool then use the following format and it's using `chain of thought` approach to solve the task:
 
 <Agent>
-    <Agent-Name>Name of the Agent (example: Planner Agent, Writer Agent,... etc)</Agent-Name>
+    <Agent-Name>Name of the Agent (example: Planner Agent, Writer Agent,... etc) try to make the name more domain oriented</Agent-Name>
     <Agent-Description>Description about the Agent's purpose</Agent-Description>
     <Agent-Query>A derived query tailored specifically for this Expert, based on the user's main query. (e.g., "write the story for bugs bunny")</Agent-Query>
     <Tasks>
@@ -23,7 +23,7 @@ In case Agent don't require a tool then use the following format and it's using 
 In case Agent requires a tool then use the following format and it's using `react` approach to solve the task and the agent has also access to Tool Agent hence can create, update, debug or delete the tool:
 
 <Agent>
-    <Agent-Name>Name of the Agent (example: Weather Agent, Writer Agent,... etc)</Agent-Name>
+    <Agent-Name>Name of the Agent (example: Weather Agent, Writer Agent,... etc) try to make the name more domain oriented</Agent-Name>
     <Agent-Description>Description about the Agent's purpose</Agent-Description>
     <Agent-Query>A derived query tailored specifically for this Expert, based on the user's main query. (e.g., "Analyze the latest global news trends").</Agent-Query>
     <Tasks>
