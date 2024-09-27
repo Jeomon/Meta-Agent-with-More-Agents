@@ -118,8 +118,6 @@ class ToolAgent(BaseAgent):
             output=f'Tool Name: {tool_name}\nTool Input: {tool_args}\n Tool has been generated successfully.'
         elif route=='delete':
             output=f'Tool Name: {tool_name}\nTool Input: {tool_args}\n Tool has been deleted successfully.'
-        else:
-            output='Package installed successfully.'
         return {**state,"output":output}
 
     def find_the_tool(self,query:str):
@@ -135,7 +133,7 @@ class ToolAgent(BaseAgent):
         system_prompt=read_markdown_file('./src/agent/tool/prompt/package_installer.md')
         llm_response=self.llm.invoke([SystemMessage(system_prompt.format(query=state.get('input')))],json=True)
         cmd=llm_response.content.get('command')
-        process=run(cmd,text=True,shell=True,capture_output=True)
+        process=run(cmd.split(' '),text=True,capture_output=True)
         if process.returncode!=0:
             print(process.stderr.strip())
             output='Package installation failed.'
