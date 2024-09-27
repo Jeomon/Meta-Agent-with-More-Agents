@@ -106,6 +106,7 @@ Once you have gathered all necessary information, either through using a tool or
 1. Escape Newlines: `\n` should be `\n`.
 2. Escape Quotes: `'` should be `\'` and `"` should be `\"`.
 3. Escape Backslashes: `\` should be `\\`.
+4. The code snippet should be in string and it must be in *triple quotes* only.
 
 ### **Final Answer Format:**
 1. Ensure that the final answer is provided in a markdown format to enhance readability and presentation.
