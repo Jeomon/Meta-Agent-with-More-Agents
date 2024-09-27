@@ -1,0 +1,4 @@
+langgraph
+colorama
+termcolor
+requests
