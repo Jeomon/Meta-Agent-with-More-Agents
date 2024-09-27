@@ -42,6 +42,27 @@ def update_tool_to_module(location: str, tool_data: dict):
         updated_module = ast.unparse(nodes)
         f.write(f'{updated_module}\n\n')
 
+def remove_tool_from_module(location: str, tool_data: dict):
+    # Load the module contents
+    print(tool_data)
+    with open(location, 'r') as f:
+        module = f.read()
+    # Parse the module contents into an AST
+    tree = ast.parse(module)
+    nodes=tree.body
+    drop_nodes=[]
+    for index,node in enumerate(nodes):
+        if isinstance(node, ast.ClassDef) and node.name == tool_data['name'].replace(' Tool',''):
+            drop_nodes.append(node)
+        elif isinstance(node, ast.FunctionDef) and node.name == tool_data['tool_name']:
+            drop_nodes.append(node)
+    nodes=[node for node in nodes if node not in drop_nodes]
+        
+    # Write the updated module contents back to the file
+    with open(location, 'w') as f:
+        updated_module = ast.unparse(nodes)
+        f.write(f'{updated_module}\n\n')
+
 def save_tool_to_module(location: str, tool_data: dict):
     with open(location,'a',encoding='utf-8') as f:
         f.write(f"{dedent(tool_data.get('tool'))}\n\n")

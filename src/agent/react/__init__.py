@@ -65,6 +65,14 @@ class ReactAgent(BaseAgent):
                 },indent=2)
                 self.tools[tool.name]=tool
                 break
+    
+    def remove_tool_from_toolbox(self,_tool_name):
+        for index,tool_name in enumerate(self.tool_names):
+            if tool_name==_tool_name:
+                self.tool_names.pop(index)
+                self.tools_description.pop(index)
+                self.tools.pop(_tool_name)
+                break
 
     def action(self,state:AgentState):
         message=(state['messages'][-1])
@@ -98,22 +106,27 @@ class ReactAgent(BaseAgent):
         query=response.get('Query')
         generator=ToolAgent(location=self.dynamic_tools_file,llm=self.llm,verbose=self.verbose,json=True)
         tool_info=generator.invoke(query)
-        # tool_name=tool_info.get('tool_name')
+        tool_name=tool_info.get('tool_name')
         func_name=tool_info.get('func_name')
         output=tool_info.get('output')
         route=tool_info.get('route')
         reload(self.dynamic_tools_module)
-        try:
-            tool=getattr(self.dynamic_tools_module,func_name)
-        except Exception as e:
-            print(e)
-        if route=='generate':
-            self.add_tools_to_toolbox([tool])
-        if route=='update':
-            self.update_tool_in_toolbox(tool)
-        if route=='debug':
-            self.update_tool_in_toolbox(tool)
-        content=f'{output} Now the tool is available in the tool box and ready for use.'
+        if route=='delete':
+            self.remove_tool_from_toolbox(tool_name)
+            content=f'{output} Now the tool is removed from the tool box.'        
+        else:
+            try:
+                tool=getattr(self.dynamic_tools_module,func_name)
+            except Exception as e:
+                print(e)
+            if route=='generate':
+                self.add_tools_to_toolbox([tool])
+            if route=='update':
+                self.update_tool_in_toolbox(tool)
+            if route=='debug':
+                self.update_tool_in_toolbox(tool)
+            content=f'{output} Now the tool is available in the tool box and ready for use.'
+        
         if self.verbose:
             print(colored(content,color='cyan',attrs=['bold']))
         return {**state,'messages':[HumanMessage(content)]}

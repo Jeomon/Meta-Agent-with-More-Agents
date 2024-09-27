@@ -1,5 +1,6 @@
 from src.agent.tool.utils import (extract_tools_from_module,
-update_tool_to_module,save_tool_to_module,read_markdown_file)
+update_tool_to_module,save_tool_to_module,remove_tool_from_module,
+read_markdown_file)
 from langchain_core.runnables.graph import MermaidDrawMethod
 from src.message import HumanMessage,SystemMessage
 from src.agent.tool.state import AgentState
@@ -29,7 +30,7 @@ class ToolAgent(BaseAgent):
                 f.write(content)
             print(f'{self.location} has been created successfully.')
 
-    def generate_agent(self,state:AgentState):
+    def generate_tool(self,state:AgentState):
         system_prompt=read_markdown_file('./src/agent/tool/prompt/generate.md')
         user_prompt='**Query:**\n`{query}`'
         system_message=SystemMessage(system_prompt)
@@ -46,7 +47,7 @@ class ToolAgent(BaseAgent):
             print(f'Error: {error}')
         return {**state,'tool_data':tool_data.content,'error':error}
 
-    def update_agent(self,state:AgentState):
+    def update_tool(self,state:AgentState):
         tool=self.find_the_tool(state.get('input'))
         system_prompt=read_markdown_file('./src/agent/tool/prompt/update.md')
         user_prompt='Use the following inputs to guide the tool update:\n\n**Tool Definition (Existing):**\n`{tool_definition}`\n**Query (Modification Required):**\n`{query}`'
@@ -64,7 +65,7 @@ class ToolAgent(BaseAgent):
             print(f'Error: {error}')
         return {**state,'tool_data':updated_tool_data.content,'error':error}
     
-    def debug_agent(self,state:AgentState):
+    def debug_tool(self,state:AgentState):
         if state.get('route')=='debug':
             error=state.get('input')
             tool_data=self.find_the_tool(error)
@@ -76,7 +77,7 @@ class ToolAgent(BaseAgent):
         while error and iteration<max_iteration:
             system_prompt=read_markdown_file('./src/agent/tool/prompt/debug.md')
             system_message=SystemMessage(system_prompt)
-            user_prompt='Use the following inputs to guide the tool debug:\n\n**Tool Definition:**\n`{tool_definition}`\n**Error Message:**\n`{error_message}`'
+            user_prompt='Use the following inputs to guide the tool debugging:\n\n**Tool Definition:**\n`{tool_definition}`\n**Error Message:**\n`{error_message}`'
             human_message=HumanMessage(user_prompt.format(tool_definition=tool_data.get('tool'),error_message=error))
             debug_tool_data=self.llm.invoke([system_message,human_message],json=True).content
             try:
@@ -89,6 +90,18 @@ class ToolAgent(BaseAgent):
                 error=e
                 iteration+=1
         return {**state,'tool_data':debug_tool_data,'error':error}
+    
+    def delete_tool(self,state:AgentState):
+        tool=self.find_the_tool(state.get('input'))
+        tool_data={
+            'name':tool.get('tool_name'),
+            'tool_name':tool.get('func_name'),
+            'tool':tool.get('tool')
+        }
+        remove_tool_from_module(self.location,tool_data)
+        if self.verbose:
+            print(f'{tool_data.get("tool_name")} has been removed from {self.location} successfully.')
+        return {**state,'tool_data':tool_data}
     
     def reloader(self,state:AgentState):
         route=state.get('route').lower()
@@ -103,6 +116,8 @@ class ToolAgent(BaseAgent):
             output=f'Tool Name: {tool_name}\nTool Input: {tool_args}\n Tool has been debugged successfully.'
         elif route=='generate':
             output=f'Tool Name: {tool_name}\nTool Input: {tool_args}\n Tool has been generated successfully.'
+        elif route=='delete':
+            output=f'Tool Name: {tool_name}\nTool Input: {tool_args}\n Tool has been deleted successfully.'
         else:
             output='Package installed successfully.'
         return {**state,"output":output}
@@ -144,6 +159,10 @@ class ToolAgent(BaseAgent):
                 'description':'This route is used if the query is to create or generate new tool.'
             },
             {
+                'name': 'delete',
+                'description':'This route is used if the query is to delete an existing tool.'
+            },
+            {
                 'name':'package',
                 'description':'This route is used if the query is to install a missing module or library for the tool.'
             }
@@ -163,9 +182,10 @@ class ToolAgent(BaseAgent):
 
         workflow.add_node('router',self.router)
         workflow.add_node('package',self.package_installer)
-        workflow.add_node('generate',self.generate_agent)
-        workflow.add_node('update',self.update_agent)
-        workflow.add_node('debug',self.debug_agent)
+        workflow.add_node('generate',self.generate_tool)
+        workflow.add_node('update',self.update_tool)
+        workflow.add_node('debug',self.debug_tool)
+        workflow.add_node('delete',self.delete_tool)
         workflow.add_node('reloader',self.reloader)
         
         workflow.set_entry_point('router')
@@ -175,6 +195,7 @@ class ToolAgent(BaseAgent):
         workflow.add_edge('debug','reloader')
         workflow.add_edge('package',END)
         workflow.add_edge('reloader',END)
+        workflow.add_edge('delete',END)
         
         return workflow.compile(debug=False)
 
