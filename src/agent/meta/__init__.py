@@ -23,7 +23,7 @@ class MetaAgent(BaseAgent):
 
     def meta_expert(self,state:AgentState):
         llm_response=self.llm.invoke(state['messages'])
-        print(llm_response.content)
+        # print(llm_response.content)
         agent_data=extract_from_xml(llm_response.content)
         name=agent_data.get('Agent Name')
         description=agent_data.get('Agent Description')
