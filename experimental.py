@@ -70,3 +70,31 @@ def weather_tool(location:str):
     except Exception as err:
         return f'Error: {err}'
 
+class WeatherAPI(BaseModel):
+    location:str=Field(...,description="The location to fetch the weather data for.",example=['London'])
+
+@tool("Weather API Tool",args_schema=WeatherAPI)
+def weather_api_tool(location:str)->str:
+    """
+    Fetches the current weather data for a given location using OpenWeatherMap API and returns the formatted results.
+    """
+    import requests
+    import os
+    import json
+    api_key=os.environ.get('OPENWEATHERMAP_API_KEY')
+    try:
+        base_url=f'http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric'
+        response=requests.get(base_url)
+        weather_data=response.json()
+        if weather_data['cod']!='404':
+            main=weather_data['main']
+            temperature=main['temp']
+            humidity=main['humidity']
+            pressure=main['pressure']
+            weather_report=f'City: {weather_data["name"]}\nCountry: {weather_data["sys"]["country"]}\nTemperature: {temperature}°C\nHumidity: {humidity}%\nPressure: {pressure} hPa'
+            return weather_report
+        else:
+            return 'City not found'
+    except Exception as err:
+        return f'Error: {err}'
+
