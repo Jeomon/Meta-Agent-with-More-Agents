@@ -6,10 +6,10 @@ from experimental import *
 
 load_dotenv()
 
-api_key=environ.get('GROQ_API_KEY')
+api_key=environ.get('GROQ_API_KEY2')
 llm=ChatGroq('llama-3.1-70b-versatile',api_key,temperature=0)
 
-agent=MetaAgent(llm=llm,tools=[web_search_tool,file_writer_tool],verbose=True)
+agent=MetaAgent(llm=llm,tools=[],verbose=True)
 input=input("Enter a query: ")
 agent_response=agent.invoke(input)
 print(agent_response)

@@ -72,6 +72,7 @@ class ToolAgent(BaseAgent):
         elif state.get('error'):
             error=state.get('error')
             tool_data=state.get('tool_data')
+            print(tool_data)
         iteration=0
         max_iteration=5
         while error and iteration<max_iteration:
@@ -83,11 +84,15 @@ class ToolAgent(BaseAgent):
             try:
                 ast.parse(debug_tool_data.get('tool'))
                 error=''
-                update_tool_to_module(self.location,debug_tool_data.content)
+                if state.get('route') in ['debug','update']:
+                    update_tool_to_module(self.location,debug_tool_data)
+                elif state.get('route') in ['generate']:
+                    save_tool_to_module(self.location,debug_tool_data)
                 if self.verbose:
                     print(f'Fixed {debug_tool_data.get('name')} and saved to {self.location} successfully.')
             except Exception as e:
                 error=e
+                print(f'Error: {error}')
                 iteration+=1
         return {**state,'tool_data':debug_tool_data,'error':error}
     
