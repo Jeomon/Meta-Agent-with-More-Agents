@@ -10,7 +10,7 @@
 
 ## Demo
 
-![Project Demo Videos](https://drive.google.com/drive/folders/1VIYrazLOvcANW7OSCSGWBGZmZ-zz4NZV?usp=sharing)
+[Project Demo Videos](https://drive.google.com/drive/folders/1VIYrazLOvcANW7OSCSGWBGZmZ-zz4NZV?usp=sharing)
 
 Note: Sometimes it will fail and demo might seems stuck at sometime it's actually because I limited the rate of API calls so as to prevent from hitting the rate limit.
 
