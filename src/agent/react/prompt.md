@@ -109,6 +109,8 @@ Use the following format for `option 3`:
 
 - **Never make a tool call without verifying its presence in the `tool box`.** If the tool is missing, go to Option 1.
 
+- Break the problem statement or task in simple non overlapping subtasks, this is also applicable when invoking `Tool Agent`.
+
 ---
 
 ### **Action Input Format Guidelines** (for code snippets):
