@@ -24,7 +24,11 @@ class ChatGemini(BaseInference):
                 role='model'
             else:
                 role=''
-                system_instruct=message.content
+                system_instruct={
+                    'parts':{
+                        'text': message.content
+                    }
+                }
             if role in ['user','model']:
                 contents.append({
                     'role':role,
@@ -33,16 +37,20 @@ class ChatGemini(BaseInference):
                     }]
                 })
         payload={
-            'systemInstruction': system_instruct,
             'contents': contents,
             'generationConfig':{
                 'temperature': temperature,
                 'responseMimeType':'application/json' if json else 'text/plain'
             }
         }
+        if system_instruct:
+            payload['system_instruction']=system_instruct
         try:
             response=post(url=url,headers=headers,json=payload,params=params)
             json_obj=response.json()
+            # print(json_obj)
+            if json_obj.get('error'):
+                raise Exception(json_obj['error']['message'])
             if json:
                 content=loads(json_obj['candidates'][0]['content']['parts'][0]['text'])
             else:
@@ -50,7 +58,9 @@ class ChatGemini(BaseInference):
             return AIMessage(content)
         except HTTPError as err:
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
-            exit()
+        except ConnectionError as err:
+            print(err)
+        exit()
     
 class Gemini(BaseInference):
     @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
