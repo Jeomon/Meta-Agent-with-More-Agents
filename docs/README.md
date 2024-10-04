@@ -274,6 +274,17 @@ Final Answer: Based on the assessment by the Weather Agent and the Trip Planner 
 Singapore can still be a great destination for your trip, depending on your preferences and tolerance for rain. With some planning and preparation, you can still have a enjoyable trip to Singapore despite the current weather conditions.
 ```
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## References
+
+- **Meta Agent:** [Meta Prompting](https://www.promptingguide.ai/techniques/meta-prompting)
+- **React Agent:** [ReAct Prompting](https://www.promptingguide.ai/techniques/react)
+- **CoT Agent:** [Chain-of-Thought Prompting](https://www.promptingguide.ai/techniques/cot)
+- **Reflexion in CoT Agent:** [Reflexion](https://www.promptingguide.ai/techniques/reflexion)
+
 ## Contact
 
 If you have any questions, suggestions, or feedback, feel free to contact us:
