@@ -29,9 +29,9 @@ class Query(BaseModel):
     query: str
 
 @app.post("/query")
-async def query(request: Query):
+def query(request: Query):
     query=request.query
     agent_response=agent.invoke(query)
     return {
-        "query": agent_response
+        "response": agent_response
     }
