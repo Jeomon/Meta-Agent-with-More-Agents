@@ -1,3 +1,9 @@
 <template>
-  <h1>Hello World</h1>
+  <RouterView/>
 </template>
+<script>
+  import { RouterView } from 'vue-router';
+  export default {
+    name:'App'
+  } 
+</script>
