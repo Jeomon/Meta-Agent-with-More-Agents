@@ -5,6 +5,7 @@ from src.inference.groq import ChatGroq
 from src.agent.meta import MetaAgent
 from dotenv import load_dotenv
 from os import environ
+from uuid import uuid4
 
 load_dotenv()
 api_key=environ.get('GROQ_API_KEY1')
@@ -31,7 +32,22 @@ class Query(BaseModel):
 @app.post("/query")
 def query(request: Query):
     query=request.query
+    id=uuid4()
     agent_response=agent.invoke(query)
     return {
-        "response": agent_response
+        "id": str(id),
+        "role": "assistant",
+        "content": agent_response
     }
+
+@app.post('/tool/create')
+def tool_create():
+    pass
+
+@app.post('/tool/update')
+def tool_update():
+    pass
+
+@app.post('/tool/delete')
+def tool_delete():
+    pass
