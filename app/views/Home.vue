@@ -23,17 +23,17 @@
                     <div class="grid grid-cols-12 grid-rows-9 w-full h-full">
                         <div class="row-span-8 col-span-1"></div>
                         <div class="row-span-8 col-span-10 p-5 overscroll-none">
-                            <div class="flex flex-col items-center bg-slate-100 mt-14 px-5 py-3.5 rounded-2xl" v-if="messages.length==0">
-                                <h1 class="text-3xl mb-3">👋 Welcome to Meta Agent with More Agents!</h1>
-                                <div class="text-lg text-pretty">
-                                    <p>We’re here to help you tackle complex queries by breaking them down into smaller tasks, each handled by the perfect specialized AI agent. 🌟  </p>
-                                    <p class="mt-2">Here’s how it works:<br>1️⃣ <strong>Meta Agent</strong> orchestrates the process, delegating tasks to other agents.<br>2️⃣ These agents either:  </p>
+                            <div class="flex flex-col items-center bg-slate-50 mt-12 px-6 py-5 rounded-2xl" v-if="messages.length==0">
+                                <h1 class="text-3xl font-medium">👋 Welcome to the Meta Agent with More Agents! 🌟</h1>
+                                <div class="flex flex-col gap-3 mt-5 text-base">
+                                    <p>We&#39;re excited to have you here! This project is designed to make your problem-solving experience seamless and efficient. Our <strong>Meta Agent</strong> orchestrates a team of specialized AI agents to tackle complex queries and deliver precise solutions.</p>
+                                    <p>✨ <strong>What can you do here?</strong></p>
                                     <ul class="list-disc list-inside">
-                                        <li>🛠️ Use tools to solve sub-tasks (<strong>ReAct Agent</strong>), or  </li>
-                                        <li>💡 Think step-by-step to find the solution (<strong>Chain of Thought Agent</strong>).</li>
+                                        <li>Ask any question or provide a problem statement.</li>
+                                        <li>Watch as our agents break down tasks and execute them step-by-step.</li>
+                                        <li>Receive insightful answers based on the combined intelligence of our agents!</li>
                                     </ul>
-                                    <p>3️⃣ The Meta Agent keeps everything running smoothly until your entire query is solved!  </p>
-                                    <p class="mt-3">Feel free to ask anything – we’ve got this! 🤖✨</p>
+                                    <p>💬 <strong>How can I help you today?</strong> Feel free to ask me anything, and let&#39;s embark on this journey of intelligent automation together! 🚀</p>
                                 </div>
                             </div>
                             <div v-else class="flex flex-col gap-5 overflow-y-auto overflow-x-hidden scroll-smooth">
@@ -66,55 +66,80 @@
 <script>
 import AIMessage from '@/components/AIMessage.vue';
 import HumanMessage from '@/components/HumanMessage.vue';
-import axios from 'axios';
 
 const {v4:uuidv4}=require('uuid')
 
 export default {
     data(){
         return {
-            messages:[],
-            query:'',
-            response:'',
-            initialHeight:0
+            messages: [],
+            query: '',
+            response: '',
+            initialHeight: 0,
+            socket: null // Add a socket property
         }
     },
     mounted() {
         this.initialHeight = this.$refs.textarea.scrollHeight;
+        this.initWebSocket(); // Initialize WebSocket on mount
     },
-    methods:{
+    methods: {
         autoResizeTextarea() {
             const textarea = this.$refs.textarea;
             textarea.style.height = 'auto';
             const newHeight = textarea.scrollHeight;
-            textarea.style.height = newHeight+5 + 'px';
-            textarea.style.bottom=newHeight-this.initialHeight+'px'
+            textarea.style.height = newHeight + 5 + 'px';
+            textarea.style.bottom = newHeight - this.initialHeight + 'px';
         },
-        async submitHandler(e){
+        initWebSocket() {
+            this.socket = new WebSocket('ws://localhost:8000/ws');
+
+            this.socket.onopen = () => {
+                console.log('Socket connected');
+            };
+
+            this.socket.onmessage = (event) => {
+                // When a message is received from the server
+                const response = event.data;
+                // console.log('Received:', response);
+                this.messages.push({
+                    'id': uuidv4(),
+                    'role': 'assistant',
+                    'content': response
+                });
+            };
+
+            this.socket.onclose = () => {
+                console.log('Socket closed');
+            };
+
+            this.socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        },
+        async submitHandler(e) {
             e.preventDefault();
-            let query=this.query.trim()
-            if(query){
+            let query = this.query.trim();
+            if (query) {
                 this.messages.push({
-                    'id':uuidv4(),
-                    'role':'user',
-                    'content':query
-                })
-                this.query=''
-                let response=await axios.post('/query',{
-                    'query':query
-                })
-                let data=await response.data
-                this.messages.push({
-                    'id':data.id,
-                    'role':data.role,
-                    'content':data.content
-                })
-                this.response=data
+                    'id': uuidv4(),
+                    'role': 'user',
+                    'content': query
+                });
+                this.query = '';
+                this.sendQuery(query);
+            }
+        },
+        sendQuery(query) {
+            if (this.socket.readyState === WebSocket.OPEN) {
+                this.socket.send(query);
+            } else {
+                console.log('Socket not connected');
             }
         }
     },
-    components:{
-        AIMessage,HumanMessage
+    components: {
+        AIMessage, HumanMessage
     }
 }
 </script>

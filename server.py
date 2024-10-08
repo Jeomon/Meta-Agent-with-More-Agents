@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel,Field
 from src.inference.groq import ChatGroq
 from src.agent.meta import MetaAgent
 from dotenv import load_dotenv
+from fastapi import FastAPI,WebSocket
 from os import environ
 from uuid import uuid4
 
@@ -26,19 +27,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Query(BaseModel):
-    query: str
-
-@app.post("/query")
-def query(request: Query):
-    query=request.query
-    id=uuid4()
-    agent_response=agent.invoke(query)
-    return {
-        "id": str(id),
-        "role": "assistant",
-        "content": agent_response
-    }
+@app.websocket("/ws")
+async def websocket_endpoint(websocket:WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data=await websocket.receive_text()
+            agent_response= agent.invoke(data)
+            await websocket.send_text(agent_response)
+    except Exception as e:
+        print(e)
+    finally:
+        await websocket.close()
 
 @app.post('/tool/create')
 def tool_create():
