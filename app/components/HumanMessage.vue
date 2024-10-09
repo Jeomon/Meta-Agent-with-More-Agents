@@ -11,7 +11,8 @@
 <script>
 export default {
     props : {
-        content:String
+        content:String,
+        agent:String
     }
 }
 </script>

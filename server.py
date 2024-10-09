@@ -1,12 +1,9 @@
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel,Field
 from src.inference.groq import ChatGroq
 from src.agent.meta import MetaAgent
-from dotenv import load_dotenv
 from fastapi import FastAPI,WebSocket
+from dotenv import load_dotenv
 from os import environ
-from uuid import uuid4
 
 load_dotenv()
 api_key=environ.get('GROQ_API_KEY1')
@@ -32,13 +29,18 @@ async def websocket_endpoint(websocket:WebSocket):
     await websocket.accept()
     try:
         while True:
-            data=await websocket.receive_text()
-            agent_response= agent.invoke(data)
-            await websocket.send_text(agent_response)
+            query=await websocket.receive_text()
+            for response in agent.stream(query):
+                intermediate=response.get('Meta')
+                answer=response.get('Answer')
+                if intermediate:
+                    agent=response.get('current_agent')
+                    await websocket.send_json({'agent': agent})
+                if answer:
+                    output=answer.get('output')
+                    await websocket.send_json({'output': output})
     except Exception as e:
         print(e)
-    finally:
-        await websocket.close()
 
 @app.post('/tool/create')
 def tool_create():

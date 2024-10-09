@@ -9,6 +9,7 @@ from src.agent.react import ReactAgent
 from src.agent.cot import COTAgent
 from src.agent import BaseAgent
 from termcolor import colored
+from typing import Generator
 
 class MetaAgent(BaseAgent):
     def __init__(self,llm:BaseInference=None,tools:list=[],max_iteration=10,json=False,verbose=False):
@@ -34,11 +35,11 @@ class MetaAgent(BaseAgent):
             content=f'Agent Name: {name}\nDescription: {description}\nTasks: {tasks}\nTool: {tool}'
             print_stmt=colored(content,color='yellow',attrs=['bold'])
         else:
-            content=f'Final Answer: {answer}'
-            print_stmt=colored(content,color='cyan',attrs=['bold'])
+            content=answer
+            print_stmt=colored(f'Final Answer: {content}',color='cyan',attrs=['bold'])
         if self.verbose:
             print(print_stmt)
-        return {**state,'agent_data':agent_data,'messages':[HumanMessage(content)]}
+        return {**state,'current_agent':name,'agent_data':agent_data,'messages':[HumanMessage(content)]}
 
     def react_expert(self,state:AgentState):
         agent_data=state.get('agent_data')
@@ -74,7 +75,7 @@ class MetaAgent(BaseAgent):
             output=state['messages'][-1].content
         else:
             output='Iteration limit reached'
-        return {**state, 'output':output}
+        return {**state, 'output':output,'current_agent':''}
     
     def controller(self,state:AgentState):
         if self.max_iteration>self.iteration:
@@ -111,17 +112,28 @@ class MetaAgent(BaseAgent):
         plot=self.graph.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API)
         return display(Image(plot))
 
-    def invoke(self, input: str)->str:    
+    def invoke(self, input: str)->str|Generator:    
         if self.verbose:
-            print(f'Entering '+colored(self.name,'black','on_white'))  
+            print(f'Entering '+colored(self.name,'black','on_white'))
         state={
             'input':input,
             'messages':[SystemMessage(self.system_prompt),HumanMessage(f'User Query: {input}')],
+            'agent_data':{},
+            'current_agent':self.name,
             'output':'',
         }
-        graph_response=self.graph.invoke(state)
+        response=self.graph.invoke(state)
         print('='*100)
-        return graph_response['output']
+        return response['output']
 
     def stream(self, input: str):
-        pass
+        if self.verbose:
+            print(f'Entering '+colored(self.name,'black','on_white'))
+        state={
+            'input':input,
+            'messages':[SystemMessage(self.system_prompt),HumanMessage(f'User Query: {input}')],
+            'agent_data':{},
+            'current_agent':self.name,
+            'output':'',
+        }
+        return self.graph.stream(state)
