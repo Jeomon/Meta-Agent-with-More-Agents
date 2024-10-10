@@ -20,9 +20,9 @@
                     <h1 class="text-4xl">MAMA</h1>
                 </div>
                 <div class="row-span-10">
-                    <div class="grid grid-cols-12 grid-rows-9 w-full h-full">
+                    <div class="grid grid-cols-8 grid-rows-9 w-full h-full">
                         <div class="row-span-8 col-span-1"></div>
-                        <div class="row-span-8 col-span-10 p-5 overscroll-none">
+                        <div class="row-span-8 col-span-6 p-5 overscroll-none">
                             <div class="flex flex-col items-center bg-slate-50 mt-12 px-6 py-5 rounded-2xl" v-if="messages.length==0">
                                 <h1 class="text-3xl font-medium">👋 Welcome to the Meta Agent with More Agents! 🌟</h1>
                                 <div class="flex flex-col gap-3 mt-5 text-base">
@@ -36,7 +36,7 @@
                                     <p>💬 <strong>How can I help you today?</strong> Feel free to ask me anything, and let&#39;s embark on this journey of intelligent automation together! 🚀</p>
                                 </div>
                             </div>
-                            <div v-else class="flex flex-col gap-5 overflow-y-auto overflow-x-hidden scroll-smooth">
+                            <div v-else class="flex flex-col gap-5 h-full overflow-y-auto overflow-x-hidden scroll-smooth">
                                 <component :key="message.id" v-for="message in messages" :is="message.role==='user'?'HumanMessage':'AIMessage'" :content="message.content" :agent="message.agent"/>
                             </div>
                         </div>
@@ -104,7 +104,7 @@ export default {
                 if(last_message.role=='assistant'){
                     if(response.agent){
                         last_message.agent=`Calling ${response.agent}`
-                        last_message.content='Loading'
+                        last_message.content='Loading...'
                     }else if (response.output){
                         last_message.agent=''
                         last_message.content=response.output
@@ -113,14 +113,15 @@ export default {
                     this.messages.push({
                         'id': uuidv4(),
                         'role': 'assistant',
-                        'content': response?.output,
-                        'agent': response?.agent
+                        'content': response?.output? response.output: 'Loading...',
+                        'agent': response?.agent? `Calling ${response?.agent}`: ''
                     });
                 }
             };
 
             this.socket.onclose = () => {
                 console.log('Socket closed');
+                this.initWebSocket();
             };
 
             this.socket.onerror = (error) => {
@@ -145,6 +146,7 @@ export default {
                 this.socket.send(query);
             } else {
                 console.log('Socket not connected');
+                this.socket.send(query);
             }
         }
     },

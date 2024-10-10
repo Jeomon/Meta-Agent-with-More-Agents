@@ -31,16 +31,16 @@ async def websocket_endpoint(websocket:WebSocket):
         while True:
             query=await websocket.receive_text()
             for response in agent.stream(query):
-                intermediate=response.get('Meta')
+                meta=response.get('Meta')
                 answer=response.get('Answer')
-                if intermediate:
-                    agent=response.get('current_agent')
-                    await websocket.send_json({'agent': agent})
+                if meta:
+                    await websocket.send_json({'agent': meta.get('current_agent')})
                 if answer:
-                    output=answer.get('output')
-                    await websocket.send_json({'output': output})
+                    await websocket.send_json({'output': answer.get('output')})
     except Exception as e:
         print(e)
+    finally:
+        await websocket.close()
 
 @app.post('/tool/create')
 def tool_create():
