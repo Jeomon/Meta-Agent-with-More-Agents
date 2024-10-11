@@ -26,3 +26,25 @@ def weather_tool(location: str):
     except Exception as err:
         return f'Error: {err}'
 
+class StockPrice(BaseModel):
+    symbol:str=Field(...,description="The stock symbol.",example=['NVDA'])
+
+@tool("Stock Price Tool",args_schema=StockPrice)
+def stock_price_tool(symbol:str):
+    '''
+    Fetches real-time financial data, including the current stock price of the given symbol.
+    '''
+    import requests
+    import json
+    api_key=os.environ.get('ALPHA_VANTAGE_API_KEY')
+    try:
+        url=f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={api_key}'
+        response=requests.get(url)
+        data=response.json()
+        if 'Global Quote' in data:
+            return json.dumps(data['Global Quote'],indent=4)
+        else:
+            return 'Error: Invalid symbol or API key'
+    except Exception as err:
+        return f'Error: {err}'
+

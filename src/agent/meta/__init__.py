@@ -118,9 +118,10 @@ class MetaAgent(BaseAgent):
         if self.verbose:
             print(f'Entering '+colored(self.name,'black','on_white'))
         system_prompt=self.system_prompt.format(agents='\n\n'.join(self.agents),tool_names=self.tool_names)
+        user_prompt=f'User Query: {input}'
         state={
             'input':input,
-            'messages':[SystemMessage(system_prompt),HumanMessage(f'User Query: {input}')],
+            'messages':[SystemMessage(system_prompt),HumanMessage(user_prompt)],
             'agent_data':{},
             'current_agent':self.name,
             'output':'',
@@ -132,9 +133,11 @@ class MetaAgent(BaseAgent):
     def stream(self, input: str):
         if self.verbose:
             print(f'Entering '+colored(self.name,'black','on_white'))
+        system_prompt=self.system_prompt.format(agents='\n\n'.join(self.agents),tool_names=self.tool_names)
+        user_prompt=f'User Query: {input}'
         state={
             'input':input,
-            'messages':[SystemMessage(self.system_prompt),HumanMessage(f'User Query: {input}')],
+            'messages':[SystemMessage(system_prompt),HumanMessage(user_prompt)],
             'agent_data':{},
             'current_agent':self.name,
             'output':'',
