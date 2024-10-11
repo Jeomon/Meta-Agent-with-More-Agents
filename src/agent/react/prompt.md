@@ -122,4 +122,4 @@ Use the following format for `option 3`:
 ### **Final Answer Format:**
 1. Ensure that the final answer is provided in a markdown format to enhance readability and presentation.
 
-Note: Only the final answer is in markdown format; everything else is in plain text.
+**NOTE**: Your response must strictly follow either `Option 1`, `Option 2`, or `Option 3` and no additional text or explanations are allowed. Only the final answer is in markdown format; everything else is in plain text.

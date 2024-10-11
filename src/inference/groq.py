@@ -123,9 +123,10 @@ class AudioGroq(BaseInference):
         except HTTPError as err:
             err_object=loads(err.response.text)
             print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')
+            exit()
         except ConnectionError as err:
             print(err)
-        exit()
+            exit()
     
     def __read_audio(self,file_name:str):
         with open(file_name,'rb') as f:

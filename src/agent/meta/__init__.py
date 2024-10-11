@@ -12,12 +12,14 @@ from termcolor import colored
 from typing import Generator
 
 class MetaAgent(BaseAgent):
-    def __init__(self,llm:BaseInference=None,tools:list=[],max_iteration=10,json=False,verbose=False):
+    def __init__(self,llm:BaseInference=None,agents:list[dict]=[],tools:list=[],max_iteration=10,json=False,verbose=False):
         self.name='Meta Agent'
         self.llm=llm
         self.max_iteration=max_iteration
         self.iteration=0
-        self.tools=tools
+        self.agents=[f'Name: {agent["name"]}\nDescription: {agent["description"]}\nTools: {','.join([tool.name for tool in agent["tools"]])}' for agent in agents]
+        self.tools=tools or [tool for agent in agents for tool in agent['tools']]
+        self.tool_names=[tool.name for tool in tools]
         self.graph=self.create_graph()
         self.verbose=verbose
         self.system_prompt=read_markdown_file('./src/agent/meta/prompt.md')
@@ -115,9 +117,10 @@ class MetaAgent(BaseAgent):
     def invoke(self, input: str)->str|Generator:    
         if self.verbose:
             print(f'Entering '+colored(self.name,'black','on_white'))
+        system_prompt=self.system_prompt.format(agents='\n\n'.join(self.agents),tool_names=self.tool_names)
         state={
             'input':input,
-            'messages':[SystemMessage(self.system_prompt),HumanMessage(f'User Query: {input}')],
+            'messages':[SystemMessage(system_prompt),HumanMessage(f'User Query: {input}')],
             'agent_data':{},
             'current_agent':self.name,
             'output':'',
