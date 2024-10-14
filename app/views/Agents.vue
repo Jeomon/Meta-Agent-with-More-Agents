@@ -1,3 +1,57 @@
 <template>
-    <h1>Agents</h1>
+    <div class="w-full h-screen px-6 pt-10 flex flex-col gap-y-4">
+        <div class="flex flex-row justify-between items-center">
+            <h1 class="text-4xl font-medium">Agents</h1>
+            <span @click="createAgent" class="bg-slate-100 px-3 py-3 rounded-lg font-medium cursor-pointer">Add Agent</span>
+        </div>
+        <div class="grid grid-cols-3 gap-4 overflow-y-auto">
+            <Agent/>
+            <Agent/>
+        </div>
+    </div>
+    <div :style="{ display: isclicked ? 'block' : 'none' }" class="absolute left-0 top-0 w-full h-full backdrop-blur-md backdrop-brightness-50">
+        <div class="w-[90%] h-[85%] bg-slate-200 mx-auto mt-[3%] rounded-md p-6">
+            <h1 class="font-medium text-3xl">Create Agent</h1>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <label for="tool_name">Agent Name</label>
+                    <input class="outline-none rounded-md h-8 p-2 w-[30%]" type="text" name="tool_name"/>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="tool_description">Agent Description</label>
+                    <textarea rows="10" class="resize-none outline-none rounded-md p-2" type="text" name="tool_description"/>
+                </div>
+                <div class="flex flex-col gap-2 w-fit">
+                    <label for="tool_description">Tool</label>
+                    <select class="p-1.5 rounded-md">
+                        <option selected disabled>Select Tool</option>
+                        <option>No Tool</option>
+                        <option>Weather Tool</option>
+                        <option>Stock Tool</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-slate-100 p-3 rounded-lg font-medium w-fit h-fit">Create Tool</button>
+            </div>
+        </div>
+    </div>
 </template>
+<script>
+import Agent from '@/components/Agent.vue';
+
+export default {
+
+    data(){
+        return {
+            isclicked: false
+        }
+    },
+    methods:{
+        createAgent(){
+            this.isclicked = !this.isclicked
+        }
+    },
+    components: {
+        Agent
+    }
+}
+</script>
