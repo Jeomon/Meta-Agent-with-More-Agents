@@ -66,32 +66,33 @@ class ToolAgent(BaseAgent):
         return {**state,'tool_data':updated_tool_data.content,'error':error}
     
     def debug_tool(self,state:AgentState):
-        if state.get('route')=='debug':
+        if state.get('route') in ['debug']:
             error=state.get('input')
             tool_data=self.find_the_tool(error)
-        elif state.get('error'):
+        elif state.get('route') in ['generate','update']:
             error=state.get('error')
             tool_data=state.get('tool_data')
-            print(tool_data)
         iteration=0
         max_iteration=5
+        system_prompt=read_markdown_file('./src/agent/tool/prompt/debug.md')
+        system_message=SystemMessage(system_prompt)
+        user_prompt='Use the following inputs to guide the tool debugging:\n\n**Tool Definition:**\n`{tool_definition}`\n**Error Message:**\n`{error_message}`'
+        human_message=HumanMessage(user_prompt.format(tool_definition=tool_data.get('tool'),error_message=error))
+        messages=[system_message,human_message]
         while error and iteration<max_iteration:
-            system_prompt=read_markdown_file('./src/agent/tool/prompt/debug.md')
-            system_message=SystemMessage(system_prompt)
-            user_prompt='Use the following inputs to guide the tool debugging:\n\n**Tool Definition:**\n`{tool_definition}`\n**Error Message:**\n`{error_message}`'
-            human_message=HumanMessage(user_prompt.format(tool_definition=tool_data.get('tool'),error_message=error))
-            debug_tool_data=self.llm.invoke([system_message,human_message],json=True).content
+            debug_tool_data=self.llm.invoke(messages,json=True)
+            # print(debug_tool_data.content)
             try:
-                ast.parse(debug_tool_data.get('tool'))
+                ast.parse(debug_tool_data.content.get('tool'))
                 error=''
-                if state.get('route') in ['debug','update']:
-                    update_tool_to_module(self.location,debug_tool_data)
-                elif state.get('route') in ['generate']:
-                    save_tool_to_module(self.location,debug_tool_data)
+                if state.get('route') in ['debug']:
+                    update_tool_to_module(self.location,debug_tool_data.content)
+                elif state.get('route') in ['generate','update']:
+                    save_tool_to_module(self.location,debug_tool_data.content)
                 if self.verbose:
-                    print(f'Fixed {debug_tool_data.get('name')} and saved to {self.location} successfully.')
-            except Exception as e:
-                error=e
+                    print(f'Fixed {debug_tool_data.content.get('name')} and saved to {self.location} successfully.')
+            except Exception as error:
+                messages.append(HumanMessage(str(error)))
                 print(f'Error: {error}')
                 iteration+=1
         return {**state,'tool_data':debug_tool_data,'error':error}
