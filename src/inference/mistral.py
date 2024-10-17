@@ -49,7 +49,7 @@ class ChatMistral(BaseInference):
         }
         try:
             with Client() as client:
-                response=client.post(url=url,json=payload,headers=headers)
+                response=client.post(url=url,json=payload,headers=headers,timeout=None)
             json_object=response.json()
             # print(json_object)
             if json_object.get('error'):
@@ -84,7 +84,7 @@ class ChatMistral(BaseInference):
                 "type": "json_object"
             }
         try:
-            response=requests.post(url=url,json=payload,headers=headers)
+            response=requests.post(url=url,json=payload,headers=headers,timeout=None)
             response.raise_for_status()
             chunks=response.iter_lines(decode_unicode=True)
             for chunk in chunks:
