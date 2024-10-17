@@ -20,12 +20,12 @@ const routes = [
       {
         path:'agents',
         name:'agents',
-        component: ()=> import('../views/Agents.vue')
+        component: ()=> import('../views/agents/Agents.vue'),
       },
       {
         path:'tools',
         name:'tools',
-        component: ()=> import('../views/Tools.vue')
+        component: ()=> import('../views/tools/Tools.vue')
       },
       {
         path:'integrations',

@@ -11,8 +11,8 @@
         <div>
             <img @click="toggleMenu" class="w-3.5 h-3.5 cursor-pointer relative mb-1" src="../assets/3-dot.svg" />
             <ul :style="{ display: isclicked ? 'block' : 'none' }" class="absolute bg-white rounded-md text-base shadow-md overflow-hidden">
-                <li class="hover:bg-slate-100 py-1 px-2.5 cursor-pointer">Edit</li>
-                <li class="hover:bg-slate-100 py-1 px-2.5 cursor-pointer">Delete</li>
+                <li @click="editEvent" class="hover:bg-slate-100 py-1 px-2.5 cursor-pointer">Edit</li>
+                <li @click="deleteEvent" class="hover:bg-slate-100 py-1 px-2.5 cursor-pointer">Delete</li>
             </ul>
         </div>
     </div>
@@ -28,6 +28,14 @@ export default {
     methods: {
         toggleMenu() {
             this.isclicked = !this.isclicked; // Toggle the isclicked state
+        },
+        editEvent(){
+            this.isclicked = !this.isclicked
+            this.$emit('edit','This agent is edited')
+        },
+        deleteEvent(){
+            this.isclicked = !this.isclicked
+            this.$emit('delete','This agent is deleted')
         }
     }
 }
