@@ -31,9 +31,14 @@ class SystemMessage(BaseMessage):
         self.content=content
 
 class ImageMessage(BaseMessage):
-    def __init__(self,text:str,image_path:str):
+    def __init__(self,text:str=None,image_path:str=None,image_base_64:str=None):
         self.role='user'
-        self.content=[dict(type='text',text=text),dict(type='image_url',image_url=dict(url=f"data:image/jpeg;base64,{self.__image_to_base64(image_path)}"))]
+        if image_base_64 is not None or image_path is None:
+            self.content=(text,image_base_64)
+        elif image_path is not None or image_base_64 is None:
+            self.content=(text,self.__image_to_base64(image_path))
+        else:
+            raise Exception('image_path and image_base_64 cannot be both None or both not None')
     
     def __is_url(self,image_path:str)->bool:
         url_pattern = re.compile(r'^https?://')
@@ -54,12 +59,6 @@ class ImageMessage(BaseMessage):
         else:
             raise ValueError("Invalid image source. Must be a URL or file path.")
         return base64.b64encode(image_bytes).decode('utf-8')
-    
-    def to_dict(self)->dict[str,str]:
-        return {
-            'role': self.role,
-            'content': self.content
-        }
 
 class ToolMessage(BaseMessage):
     def __init__(self,content:str,tool_call:str,tool_args:dict):
