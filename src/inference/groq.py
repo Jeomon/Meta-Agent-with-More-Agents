@@ -80,12 +80,11 @@ class ChatGroq(BaseInference):
             "model": self.model,
             "messages": messages,
             "temperature": temperature,
+            "response_format": {
+                "type": "json_object" if json else "text"
+            },
             "stream":True,
         }
-        if json:
-            payload["response_format"]={
-                "type": "json_object"
-            }
         try:
             response=requests.post(url=url,json=payload,headers=headers)
             response.raise_for_status()
@@ -122,19 +121,14 @@ class AudioGroq(BaseInference):
         payload={
             "model": self.model,
             "temperature": temperature,
+            "response_format": {
+                "type": "json_object" if json else "text"
+            },
             "language": language
         }
         files={
             'file': self.__read_audio(file)
         }
-        if json:
-            payload["response_format"]={
-                "type": "json"
-            }
-        else:
-            payload['response_format']={
-                "type":"text"
-            }
         try:
             with Client() as client:
                 response=client.post(url=url,json=payload,files=files,headers=headers)
