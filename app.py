@@ -20,7 +20,7 @@ agents=[
     },
     {
         'name': 'Stock Agent',
-        'description': 'This agent will provide the information related to the price of the stock.',
+        'description': 'This agent will provide current price of the given stock.',
         'tools': [stock_price_tool]
     }
 ]
