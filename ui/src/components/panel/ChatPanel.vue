@@ -1,15 +1,5 @@
 <template>
-    <div class="w-[85%] h-full mx-auto py-5 px-10 overflow-y-scroll scroll-smooth">
-        <HumanMessage/>
-        <AIMessage/>
-        <HumanMessage/>
-        <AIMessage/>
-        <HumanMessage/>
-        <AIMessage/>
-        <HumanMessage/>
-        <AIMessage/>
-        <HumanMessage/>
-        <AIMessage/>
+    <div class="w-[85%] h-full mx-auto py-5 px-10 overflow-y-auto scroll-smooth">
         <HumanMessage/>
         <AIMessage/>
     </div>
