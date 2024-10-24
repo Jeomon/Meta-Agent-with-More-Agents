@@ -26,6 +26,17 @@ import QueryPanel from '../components/panel/QueryPanel.vue';
 import UserPanel from '../components/panel/UserPanel.vue';
   
 export default {
+    data() {
+        return {
+            socket: null
+        }
+    },
+    mounted() {
+  
+    },
+    methods:{
+    
+    },
     components: {
       QueryPanel,UserPanel,HistoryPanel,ChatPanel,LogoPanel
     }

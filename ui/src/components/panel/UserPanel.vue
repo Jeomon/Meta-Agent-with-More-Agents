@@ -16,7 +16,7 @@
                     <p>Settings</p>
                 </RouterLink>
                 <hr class="bg-slate-100">
-                <RouterLink class="flex flex-row gap-2.5 items-center">
+                <RouterLink :to="{}" class="flex flex-row gap-2.5 items-center">
                     <img class="w-6 h-6" src="../../assets/logout.svg"/>
                     <p>Log out</p>
                 </RouterLink>

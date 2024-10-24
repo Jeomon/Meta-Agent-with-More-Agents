@@ -25,5 +25,8 @@ agents=[
     }
 ]
 agent=MetaAgent(agents=agents,llm=llm,verbose=True)
-agent_response=agent.invoke(query)
-print(agent_response)
+# agent_response=agent.invoke(query)
+# print(agent_response)
+
+for chunk in agent.stream(query):
+    print(chunk)

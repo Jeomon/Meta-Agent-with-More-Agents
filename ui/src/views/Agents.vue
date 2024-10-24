@@ -14,7 +14,7 @@
         <div @click="createAgentHandler" :style="{'display':isCreate?'block':'none'}" class="bg-slate-200/60 backdrop-blur-sm w-full h-full absolute top-0 left-0">
             <div @click.stop class="w-[60%] mx-auto bg-slate-300/60 backdrop-blur-md drop-shadow-md  mt-[5%] rounded-md px-5 pt-3 pb-1">
                 <h1 class="text-4xl font-medium">Create Agent</h1>
-                <hr class="w-[25%]">
+                <hr class="w-[40%]">
                 <form @submit.prevent="" class="my-4 flex flex-col gap-3">
                     <div class="flex flex-col gap-1">
                         <label role="name" for="name">Name: </label>

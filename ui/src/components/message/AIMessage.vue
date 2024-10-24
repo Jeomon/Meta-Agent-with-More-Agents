@@ -1,9 +1,10 @@
 <template>
     <div class="flex flex-col justify-start gap-1 my-2">
-        <p class="text-lg/2">Calling Weather Agent</p>
-        <div class="flex flex-row gap-x-2 bg-slate-100/80 w-fit max-w-[40%] p-2.5 rounded-2xl items-center relative shadow-md">
+        <p class="text-lg/2" v-if="getCurrentAgent">Calling {{getCurrentAgent}}</p>
+        <div class="flex flex-row gap-x-2 bg-slate-100/80 w-fit max-w-[50%] p-2.5 rounded-2xl items-center relative shadow-md">
             <img class="w-10 h-10 rounded-full self-start" src="../../assets/groq.png"/>
-            <p class="text-lg/3">Hi, How are you</p>
+            <p class="text-base leading-snug" v-if="getOutput">{{getOutput}}</p>
+            <p class="text-base leading-snug" v-else>Waiting for response</p>
             <div class="flex flex-row gap-x-2 w-fit justify-center absolute -bottom-6 -right-1">
                 <img class="w-4 h-4" src="../../assets/like.svg"/>
                 <img class="w-4 h-4" src="../../assets/dislike.svg"/>
@@ -13,3 +14,18 @@
         </div>
     </div>
 </template>
+<script>
+export default {
+    props:{
+        content: Object,
+    },
+    computed:{
+        getCurrentAgent(){
+            return this.content.current_agent||''
+        },
+        getOutput(){
+            return this.content.output||''
+        }
+    }
+}
+</script>
