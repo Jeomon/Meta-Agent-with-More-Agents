@@ -1,8 +1,16 @@
 <template>
   <form @submit.prevent="submitQuery" class="text-lg max-h-32 absolute bottom-[22.5%] z-10 flex flex-row items-end gap-x-2">
-    <button type="button">
+    <button type="button" @click="showOptions" class="relative">
       <img class="w-4 h-4 p-4 box-content rounded-full hover:bg-slate-200/90 backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/3-dot.svg" />
     </button>
+    <div :style="{'display':isoptions?'block':'none'}" class="absolute bottom-[3.3rem] -left-7 bg-slate-200 p-2 rounded-lg shadow-md">
+      <div class="flex flex-col gap-1">
+        <span>Document</span>
+        <span>Audio</span>
+        <span>Video</span>
+        <span>Image</span>
+      </div>
+    </div>
     <textarea
       rows="1"
       @input="heightAdjust"
@@ -15,13 +23,13 @@
     </button>
   </form>
 </template>
-
 <script>
 import { mapGetters } from 'vuex';
 
 export default {
   data() {
     return {
+      isoptions:false,
       socket: null,
       current_message:null
     };
@@ -88,6 +96,9 @@ export default {
         }
       }
     },
+    showOptions() {
+      this.isoptions=!this.isoptions
+    }
   },
 };
 </script>

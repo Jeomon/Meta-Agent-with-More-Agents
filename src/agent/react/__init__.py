@@ -214,8 +214,4 @@ class ReactAgent(BaseAgent):
             'messages':[SystemMessage(system_prompt),HumanMessage(user_prompt)],
             'output':'',
         }
-        events=self.graph.stream(state)
-        for event in events:
-            for value in event.values():
-                if value['output']:
-                    yield value['output']
+        return self.graph.stream(state,stream_mode='values',output_keys=['output'])
