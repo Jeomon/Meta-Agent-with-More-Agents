@@ -16,7 +16,7 @@
       @input="heightAdjust"
       ref="textarea"
       class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl overflow-y-hidden"
-      placeholder="Enter your query here"
+      placeholder="Message MAMA"
     ></textarea>
     <button type="submit">
       <img class="w-10 h-10 p-1 box-content rounded-full hover:bg-slate-200/90 backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/triangle.svg" />
