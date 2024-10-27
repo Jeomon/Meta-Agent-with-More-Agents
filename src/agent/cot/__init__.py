@@ -1,13 +1,12 @@
 from src.agent.cot.utils import extract_llm_response,read_markdown_file
 from langchain_core.runnables.graph import MermaidDrawMethod
-from src.message import SystemMessage,HumanMessage
+from src.message import SystemMessage,HumanMessage,AIMessage
 from src.agent.cot.state import AgentState
 from IPython.display import display,Image
 from src.inference import BaseInference
 from langgraph.graph import StateGraph
 from src.agent import BaseAgent
 from termcolor import colored
-from time import sleep
 
 class COTAgent(BaseAgent):
     def __init__(self,name:str='',description:str='',instructions:list[str]=[],llm:BaseInference=None,max_iteration=10,json=False,verbose=False):
@@ -26,20 +25,18 @@ class COTAgent(BaseAgent):
 
     def reason(self,state:AgentState):
         if self.max_iteration>self.iteration:
-            if self.iteration%2!=0:
-                sleep(60) #To prevent from hitting the API rate limit
             llm_response=self.llm.invoke(state['messages'])
-            # print(llm_response.content)
             agent_data=extract_llm_response(llm_response.content)
+            if self.verbose:
+                if agent_data.get('Observation'):
+                    print(colored(f'Thought: {agent_data.get('Thought')}',color='green',attrs=['bold']))
+                    print(colored(f'Observation: {agent_data.get("Observation")}',color='cyan',attrs=['bold']))
         else:
             agent_data={
                 'Thought':'I reached the iteration limit',
-                'Answer':'Iteration limit reached'
+                'Final Answer':'Iteration limit reached'
             }
-        if self.verbose:
-            if agent_data.get('Observation'):
-                print(colored(f'Thought: {agent_data.get('Thought')}',color='green',attrs=['bold']))
-                print(colored(f'Observation: {agent_data.get("Observation")}',color='cyan',attrs=['bold']))
+            llm_response=AIMessage(content=f'<Thought>{agent_data['Thought']}</Thought>\n<Final-Answer>{agent_data['Final Answer']}</Final-Answer>')
         return {**state, 'messages':[HumanMessage(llm_response.content)],'agent_data':agent_data}
     
     def reflection(self,state:AgentState):
@@ -85,8 +82,6 @@ class COTAgent(BaseAgent):
         return display(Image(plot))
 
     def invoke(self, input: str):
-        if self.verbose:
-            print(f'Entering '+colored(self.name,'black','on_white'))  
         parameters={
             'name':self.name,
             'description':self.description,
