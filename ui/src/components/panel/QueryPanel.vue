@@ -14,8 +14,7 @@
     <textarea
       rows="1"
       @input="heightAdjust"
-      ref="textarea"
-      class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl overflow-y-hidden"
+      class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl overflow-y-auto"
       placeholder="Message MAMA"
     ></textarea>
     <button type="submit">
@@ -31,7 +30,8 @@ export default {
     return {
       isoptions:false,
       socket: null,
-      current_message:null
+      current_message:null,
+      query:''
     };
   },
   computed: {
@@ -83,22 +83,23 @@ export default {
       }
     },
     submitQuery() {
-      const content = this.$refs.textarea.value;
-      if (content) {
+      let query=this.query.trim()
+      if (query) {
         // Only send the message if the socket is open
         if (this.socket.readyState === WebSocket.OPEN) {
-          this.socket.send(content);
-          this.$store.commit('setQuery', content);
-          this.$store.commit('addMessage', {id: Date.now(), role: 'user', content });
+          this.socket.send(query);
+          this.$store.commit('setQuery', query);
+          this.$store.commit('addMessage', {id: Date.now(), role: 'user', 'content': query });
           this.$refs.textarea.value = ''; // Clear the textarea after sending
         } else {
           console.error('WebSocket is not open. Unable to send message.');
         }
       }
+      this.query = '';
     },
     showOptions() {
       this.isoptions=!this.isoptions
     }
-  },
+  }
 };
 </script>
