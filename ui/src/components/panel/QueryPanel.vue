@@ -11,12 +11,7 @@
         <span>Image</span>
       </div>
     </div>
-    <textarea
-      rows="1"
-      @input="heightAdjust"
-      class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl overflow-y-auto"
-      placeholder="Message MAMA"
-    ></textarea>
+    <textarea v-model="query" rows="1" @input="heightAdjust" class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl overflow-y-auto" placeholder="Message MAMA"></textarea>
     <button type="submit">
       <img class="w-10 h-10 p-1 box-content rounded-full hover:bg-slate-200/90 backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/triangle.svg" />
     </button>
@@ -83,19 +78,18 @@ export default {
       }
     },
     submitQuery() {
-      let query=this.query.trim()
+      let query = this.query.trim();
       if (query) {
         // Only send the message if the socket is open
         if (this.socket.readyState === WebSocket.OPEN) {
           this.socket.send(query);
           this.$store.commit('setQuery', query);
           this.$store.commit('addMessage', {id: Date.now(), role: 'user', 'content': query });
-          this.$refs.textarea.value = ''; // Clear the textarea after sending
+          this.query = ''; // Clear the textarea after sending
         } else {
           console.error('WebSocket is not open. Unable to send message.');
         }
       }
-      this.query = '';
     },
     showOptions() {
       this.isoptions=!this.isoptions

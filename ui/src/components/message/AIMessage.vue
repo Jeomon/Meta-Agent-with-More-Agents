@@ -3,7 +3,7 @@
         <p class="text-lg/2" v-if="getCurrentAgent">Calling {{getCurrentAgent}}</p>
         <div class="flex flex-row gap-x-2 bg-slate-100/80 w-fit p-3 rounded-2xl items-center relative shadow-md">
             <img class="w-10 h-10 rounded-full self-start" src="../../assets/ollama.png"/>
-            <p class="text-base leading-snug text-wrap" v-if="getOutput">{{getOutput}}</p>
+            <div class="text-base leading-snug text-wrap" v-if="getOutput" v-html="getOutput"></div>
             <p class="text-base leading-snug" v-else>Waiting for response</p>
             <div class="flex flex-row gap-x-2 justify-center absolute -bottom-6 -right-1">
                 <img class="w-4 h-4" src="../../assets/like.svg"/>
@@ -15,6 +15,7 @@
     </div>
 </template>
 <script>
+import { marked } from 'marked';
 export default {
     props:{
         content: Object,
@@ -24,7 +25,7 @@ export default {
             return this.content.current_agent||''
         },
         getOutput(){
-            return this.content.output||''
+            return marked.parse(this.content.output||'')
         }
     }
 }
