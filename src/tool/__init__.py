@@ -74,7 +74,6 @@ def remove_tool_from_module(location: str, tool_data: dict):
         elif isinstance(node, ast.FunctionDef) and node.name == tool_data['tool_name']:
             drop_nodes.append(node)
     nodes=[node for node in nodes if node not in drop_nodes]
-        
     # Write the updated module contents back to the file
     with open(location, 'w') as f:
         updated_module = ast.unparse(nodes)

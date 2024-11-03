@@ -134,7 +134,7 @@ def generate_tool(data:Query):
         'func_name':func_name,
         'tool_definition':tool_definition
     }
-@app.delete(f'/tool/delete/{id}')
+@app.delete('/tool/delete/{id}')
 def delete_tool(id:int):
     with Session(engine) as session:
         stmt=select(Tool).where(Tool.id==id)
