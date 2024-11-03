@@ -6,7 +6,7 @@
         </div>
         <hr>
         <div v-if="getTools?.length>0" class="grid grid-cols-4 gap-4 mx-2 my-3">
-            <Tool v-for="tool in getTools" :key="tool.id" :tool="tool" :deleteTool="deleteToolHandler"/>
+            <Tool v-for="tool in getTools" :key="tool.id" :tool="tool" :delete-tool="deleteToolHandler"/>
         </div>
         <div v-else class="mx-2 my-3">
             <span class="">No Tools Found.</span>

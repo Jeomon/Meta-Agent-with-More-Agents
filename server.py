@@ -60,7 +60,7 @@ def get_agents():
 @app.post('/agent/add')
 def add_agent(agent:Agent):
     with Session(engine) as session:
-        stmt=select(Agent).where(Agent.name.lower()==agent.name.lower())
+        stmt=select(Agent).where(Agent.name==agent.name)
         existing_agent=session.exec(stmt).first()
         if existing_agent:
             return {
@@ -72,7 +72,26 @@ def add_agent(agent:Agent):
             session.commit()
             return {
                 'status':'success',
+                'agent':agent.model_dump(),
                 'message':'agent added successfully.'
+            }
+
+@app.delete('/agent/delete/{id}')
+def delete_agent(id:int):
+    with Session(engine) as session:
+        stmt=select(Agent).where(Agent.id==id)
+        agent=session.exec(stmt).first()
+        if agent:
+            session.delete(agent)
+            session.commit()
+            return {
+                'status':'success',
+                'message':'agent deleted successfully.'
+            }
+        else:
+            return {
+                'status':'error',
+                'message':'agent not found.'
             }
 
 @app.get('/tool/all')

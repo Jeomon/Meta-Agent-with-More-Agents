@@ -44,6 +44,9 @@ const store=createStore({
         getAgents(state,agents){
             state.agents=agents
         },
+        deleteAgent(state,id){
+            state.agents=state.agents.filter(agent=>agent.id!=id)
+        },
         addTool(state,tool){
             state.tools.push(tool)
         },
@@ -55,11 +58,11 @@ const store=createStore({
         }
     },
     actions:{
-        async addAgent({commit},agent){
-            let response=await axios.post(`agent/add`,JSON.stringify(agent))
+        async addAgent({commit},{name,description,tools}){
+            let response=await axios.post(`agent/add`,JSON.stringify({name,description,tools}))
             let data= response.data
             if (data.status=='success'){ 
-                commit('createAgent',agent)
+                commit('createAgent',data.agent)
             }
             console.log(data.message)
         },
@@ -72,6 +75,14 @@ const store=createStore({
             }
             console.log(data.message)
         },
+        async deleteAgent({commit},{id}){
+            let response=await axios.delete(`agent/delete/${id}`)
+            let data= response.data
+            if (data.status=='success'){
+                commit('deleteAgent',id)
+            }
+            console.log(data.message)
+        },
         async getTools({commit}){
             let response=await axios.get(`tool/all`)
             let data= response.data
@@ -81,7 +92,7 @@ const store=createStore({
             }
             console.log(data.message)
         },
-        async deleteTool({commit},{id,name}){
+        async deleteTool({commit},{id}){
             let response=await axios.delete(`tool/delete/${id}`)
             let data= response.data
             if (data.status=='success'){

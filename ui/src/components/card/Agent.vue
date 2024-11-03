@@ -9,7 +9,7 @@
         <img @click="toggleHandler" class="w-4 h-4 cursor-pointer absolute right-1" src="../../assets/3-dot.svg"/>
         <div :style="{'display':toggleMenu?'flex':'none'}" class="absolute flex-col top-8 -right-0 bg-slate-100 rounded-lg overflow-hidden drop-shadow-md">
             <span class="hover:bg-slate-300 px-2 py-0.5 cursor-pointer">Modify</span>
-            <span class="hover:bg-slate-300 px-2 py-0.5 cursor-pointer">Delete</span>
+            <span @click="()=>{deleteAgent(agent);toggleMenu=false}" class="hover:bg-slate-300 px-2 py-0.5 cursor-pointer">Delete</span>
         </div>
     </div>
 </template>
@@ -23,6 +23,10 @@ export default {
     props:{
         agent: {
             type: Object, 
+            required: true
+        },
+        deleteAgent: {
+            type: Function, 
             required: true
         }
     },
