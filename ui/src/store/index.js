@@ -1,4 +1,3 @@
-import { get } from "@vueuse/core";
 import axios from "axios";
 import { createStore } from "vuex";
 
@@ -6,7 +5,8 @@ const store=createStore({
     state: {
         query: '',
         messages: [],
-        agents:[]
+        agents:[],
+        tools:[]
     },
     getters:{
         getQuery(state) {
@@ -20,6 +20,9 @@ const store=createStore({
         },
         getAgents(state) {
             return state.agents
+        },
+        getTools(state) {
+            return state.tools
         }
     },
     mutations:{
@@ -35,15 +38,24 @@ const store=createStore({
                 message.content = content
             }
         },
-        createAgent(state,agent){
+        addAgent(state,agent){
             state.agents.push(agent)
         },
         getAgents(state,agents){
             state.agents=agents
+        },
+        addTool(state,tool){
+            state.tools.push(tool)
+        },
+        deleteTool(state,id){
+            state.tools=state.tools.filter(tool=>tool.id!=id)
+        },
+        getTools(state,tools){
+            state.tools=tools
         }
     },
     actions:{
-        async createAgent({commit},agent){
+        async addAgent({commit},agent){
             let response=await axios.post(`agent/add`,JSON.stringify(agent))
             let data= response.data
             if (data.status=='success'){ 
@@ -60,6 +72,32 @@ const store=createStore({
             }
             console.log(data.message)
         },
+        async getTools({commit}){
+            let response=await axios.get(`tool/all`)
+            let data= response.data
+            if (data.status=='success'){
+                let tools=data.tools
+                commit('getTools',tools)
+            }
+            console.log(data.message)
+        },
+        async deleteTool({commit},{id,name}){
+            let response=await axios.delete(`tool/delete/${id}`)
+            let data= response.data
+            if (data.status=='success'){
+                commit('deleteTool',id)
+            }
+            console.log(data.message)
+        },
+        async addTool({commit},definition){
+            let response=await axios.post(`tool/add`,JSON.stringify(definition))
+            let data= response.data
+            if (data.status=='success'){ 
+                let tool=data.tool
+                commit('addTool',tool)
+            }
+            console.log(data.message)
+        }
     }
 })
 

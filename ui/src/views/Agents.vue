@@ -28,8 +28,8 @@
                         <label role="tools" for="tools">Pick Tools</label>
                         <select v-model="tools" class="shadow-sm w-[30%] rounded-md p-1">
                             <option selected disabled>Select the Tool</option>
-                            <option>Weather Tool</option>
-                            <option>Stock Tool</option>
+                            <option v-for="tool in getTools" :key="tool.id" :value="tool.name">{{tool.name}}</option>
+                            <option value="No Tool">No Tool</option>
                         </select>
                     </div>
                     <div>
@@ -50,11 +50,11 @@ export default {
             isCreate:false,
             name:'',
             description:'',
-            tools:''
+            tools:'Select the Tool'
         }
     },
     computed:{
-        ...mapGetters(['getAgents'])
+        ...mapGetters(['getAgents','getTools'])
     },
     mounted(){
         this.$store.dispatch('getAgents')
@@ -68,7 +68,7 @@ export default {
             const description=this.description
             const tools=this.tools
             if(name && description && tools){
-                this.$store.dispatch('createAgent',{name,description,tools})
+                this.$store.dispatch('addAgent',{name,description,tools})
                 this.isCreate=false
                 this.name=''
                 this.description=''

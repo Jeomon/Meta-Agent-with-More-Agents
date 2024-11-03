@@ -21,7 +21,10 @@ export default {
         }
     },
     props:{
-        agent: {type: Object, required: true}
+        agent: {
+            type: Object, 
+            required: true
+        }
     },
     methods:{
         toggleHandler(){
