@@ -1,13 +1,13 @@
 from src.tool import extract_tools_from_module,tool_to_ast,save_tool_to_module,remove_tool_from_module
-from sqlmodel import SQLModel, Field, create_engine, Session,select
+from models import Agent,Tool,Query,ToolDefinition,Integration
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect
-from database import create_db_and_tables,engine
 from fastapi.middleware.cors import CORSMiddleware
-from models import Agent,Tool,Query,ToolDefinition
+from database import create_db_and_tables,engine
 from contextlib import asynccontextmanager
 from src.inference.groq import ChatGroq
 from src.agent.meta import MetaAgent
 from src.tool.generate import generate
+from sqlmodel import Session,select
 from dotenv import load_dotenv
 from experimental import *
 from os import environ
@@ -183,6 +183,38 @@ def delete_tool(id:int):
                 'status':'error',
                 'message':'tool not found.'
             }
+        
+@app.get('/integration/all')
+def get_integrations():
+    with Session(engine) as session:
+        integrations=session.exec(select(Integration)).all()
+        return {
+            'status':'success',
+            'integrations':integrations,
+            'message':'integrations fetched successfully.'
+        }
+
+@app.post('/integration/add')
+def add_integration(integration:Integration):
+    with Session(engine) as session:
+        stmt=select(Integration).where(Integration.name==integration.name)
+        existing_integration=session.exec(stmt).first()
+        if existing_integration:
+            return {
+                'status':'error',
+                'message':'Integration already exists.'
+            }
+        else:
+            session.add(integration)
+            session.commit()
+            session.refresh(integration)
+            return {
+                'status':'success',
+                'integration':integration.model_dump(),
+                'message':'Integration added successfully.'
+            }
+
+
 
 if __name__=='__main__':
     uvicorn.run(app,host='0.0.0.0',port=8000)

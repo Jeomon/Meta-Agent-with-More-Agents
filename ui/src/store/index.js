@@ -6,7 +6,8 @@ const store=createStore({
         query: '',
         messages: [],
         agents:[],
-        tools:[]
+        tools:[],
+        integrations:[]
     },
     getters:{
         getQuery(state) {
@@ -23,6 +24,9 @@ const store=createStore({
         },
         getTools(state) {
             return state.tools
+        },
+        getIntegrations(state){
+            return state.integrations
         }
     },
     mutations:{
@@ -55,6 +59,12 @@ const store=createStore({
         },
         getTools(state,tools){
             state.tools=tools
+        },
+        getIntegrations(state,integrations){
+            state.integrations=integrations
+        },
+        addIntegration(state,integration){
+            state.integrations.push(integration)
         }
     },
     actions:{
@@ -106,6 +116,24 @@ const store=createStore({
             if (data.status=='success'){ 
                 let tool=data.tool
                 commit('addTool',tool)
+            }
+            console.log(data.message)
+        },
+        async getIntegrations({commit}){
+            let response=await axios.get(`integration/all`)
+            let data= response.data
+            if (data.status=='success'){ 
+                let integrations=data.integrations
+                commit('getIntegrations',integrations)
+            }
+            console.log(data.message)
+        },
+        async addIntegration({commit},integration){
+            let response=await axios.post(`integration/add`,JSON.stringify(integration))
+            let data= response.data
+            if (data.status=='success'){ 
+                let integration=data.integration
+                commit('addIntegration',integration)
             }
             console.log(data.message)
         }

@@ -2,5 +2,9 @@ langgraph
 colorama
 termcolor
 requests
+httpx
 python-dotenv
 tenacity
+sqlmodel
+fastapi
+uvicorn[standard]
