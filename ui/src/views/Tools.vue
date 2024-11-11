@@ -5,7 +5,7 @@
             <span @click="createToolHandler" class="cursor-pointer p-2 bg-slate-300 rounded-md text-lg hover:bg-slate-400">Add Tool</span>
         </div>
         <hr>
-        <div v-if="getTools?.length>0" class="grid grid-cols-4 gap-4 mx-2 my-3">
+        <div v-if="getTools?.length>0" class="grid grid-cols-4 gap-4 mx-2 mt-5">
             <Tool v-for="tool in getTools" :key="tool.id" :tool="tool" :delete-tool="deleteToolHandler"/>
         </div>
         <div v-else class="mx-2 my-3">

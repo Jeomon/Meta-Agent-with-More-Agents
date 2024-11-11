@@ -214,6 +214,22 @@ def add_integration(integration:Integration):
                 'message':'Integration added successfully.'
             }
 
+@app.delete('/integration/delete/{id}')
+def delete_integration(id:int):
+    with Session(engine) as session:
+        existing_integration=session.exec(select(Integration).where(Integration.id==id)).first()
+        if not existing_integration:
+            return {
+                'status':'error',
+                'message':'Integration not found.'
+            }
+        else:
+            session.delete(existing_integration)
+            session.commit()
+            return {
+                'status':'success',
+                'message':'Integration deleted successfully.'
+            }
 
 
 if __name__=='__main__':

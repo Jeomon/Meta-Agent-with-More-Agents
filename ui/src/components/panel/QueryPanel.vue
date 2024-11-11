@@ -11,7 +11,7 @@
         <span>Image</span>
       </div>
     </div>
-    <textarea v-model="query" rows="1" @input="heightAdjust" class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl overflow-y-auto" placeholder="Message MAMA"></textarea>
+    <textarea ref="textarea" v-model="query" rows="1" @input="heightAdjust" class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl" placeholder="Message MAMA"></textarea>
     <button type="submit">
       <img class="w-10 h-10 p-1 box-content rounded-full hover:bg-slate-200/90 backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/triangle.svg" />
     </button>
@@ -73,7 +73,7 @@ export default {
       const textarea = this.$refs.textarea;
       if (textarea) {
         textarea.style.height = '60%';
-        const newHeight = Math.min(textarea.scrollHeight, 256); // Max height of 256px (32 * 8px)
+        const newHeight = Math.min(textarea.scrollHeight, 140); // Max height of 256px (32 * 8px)
         textarea.style.height = `${newHeight}px`;
       }
     },

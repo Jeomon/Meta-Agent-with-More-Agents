@@ -65,6 +65,9 @@ const store=createStore({
         },
         addIntegration(state,integration){
             state.integrations.push(integration)
+        },
+        deleteIntegration(state,id){
+            state.integrations=state.integrations.filter(integration=>integration.id!=id)
         }
     },
     actions:{
@@ -136,6 +139,17 @@ const store=createStore({
                 commit('addIntegration',integration)
             }
             console.log(data.message)
+        },
+        async deleteIntegration({commit},{id}){
+            console.log(id);
+            
+            let response=await axios.delete(`integration/delete/${id}`)
+            let data= response.data
+            if (data.status=='success'){
+                commit('deleteIntegration',id)
+            }
+            console.log(data.message);
+            
         }
     }
 })
