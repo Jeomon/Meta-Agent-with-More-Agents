@@ -5,6 +5,7 @@ const store=createStore({
     state: {
         query: '',
         messages: [],
+        conversations:[],
         agents:[],
         tools:[],
         integrations:[]
@@ -13,9 +14,13 @@ const store=createStore({
         getQuery(state) {
             return state.query
         },
+        getConversations(state){
+            return state.conversations
+        },
         getMessages(state) {
             return state.messages
         },
+        
         getLastMessage(state) {
             return state.messages[state.messages.length - 1]
         },
@@ -37,7 +42,7 @@ const store=createStore({
             state.messages.push(message)
         },
         updateMessage(state, {id, content}) {
-            const message = state.messages.find(m => m.id === id)
+            const message = state.messages.find(message => message.id === id)
             if (message) {
                 message.content = content
             }
@@ -74,6 +79,9 @@ const store=createStore({
         },
         deleteIntegration(state,id){
             state.integrations=state.integrations.filter(integration=>integration.id!=id)
+        },
+        getConversations(state,conversations){
+            state.conversations=conversations
         }
     },
     actions:{
@@ -139,7 +147,7 @@ const store=createStore({
         },
         async addIntegration({commit},integration){
             let response=await axios.post(`integration`,JSON.stringify(integration))
-            let data= response.data
+            let data=response.data
             if (data.status=='success'){ 
                 let integration=data.integration
                 commit('addIntegration',integration)
@@ -148,7 +156,7 @@ const store=createStore({
         },
         async editIntegration({commit},integration){
             let response=await axios.put(`integration`,integration)
-            let data= response.data
+            let data=response.data
             if (data.status=='success'){
                 let integration=data.integration
                 commit('editIntegration',integration)
@@ -162,6 +170,18 @@ const store=createStore({
                 commit('deleteIntegration',id)
             }
             console.log(data.message);
+        },
+        async getConversations({commit}){
+            let response=await axios.get(`conversation`)
+            let data=response.data
+            if(data.status=='success'){
+                let conversations=data.conversations
+                commit('getConversations',conversations)
+            }
+            console.log(data.message);
+        },
+        async createConversation({commit}){
+            
         }
     }
 })

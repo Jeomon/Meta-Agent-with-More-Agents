@@ -286,10 +286,10 @@ def get_session(session_id:str):
 @app.get('/conversation')
 def get_conversation():
      with Session(engine) as session:
-        conversation = session.exec(select(Conversation)).all()
+        conversations = session.exec(select(Conversation)).all()
         return {
             'status':'success',
-            'conversation':conversation.model_dump(),
+            'conversations':conversations,
             'message':'Conversations fetched successfully.'
         }
 

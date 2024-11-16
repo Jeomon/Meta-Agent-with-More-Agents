@@ -29,9 +29,6 @@ export default {
       query:''
     };
   },
-  computed: {
-    ...mapGetters(['getLastMessage']),
-  },
   mounted() {
     this.heightAdjust();
     this.socket = new WebSocket('ws://localhost:8000/ws');

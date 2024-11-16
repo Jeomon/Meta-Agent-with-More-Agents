@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-row items-center gap-x-1 hover:bg-slate-200 focus:bg-slate-300 p-1 rounded-lg cursor-pointer">
-        <p class="truncate text-ellipsis overflow-hidden">Quantum Physics and Relativity</p>
+        <p class="truncate text-ellipsis overflow-hidden">{{ title }}</p>
         <div class="relative">
             <button @click="showOptions">
                 <img class="w-4 h-4" src="../../assets/3-dot.svg"/>
@@ -20,6 +20,9 @@ export default {
         return{
             isoptions:false
         }
+    },
+    props:{
+        title:String
     },
     methods:{
         showOptions(){
