@@ -1,6 +1,6 @@
 from src.tool import tool_to_ast,save_tool_to_module,remove_tool_from_module
-from models import Agent,Tool,Query,ToolDefinition,Integration
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect
+from models import Agent,Tool,Integration,Conversation
 from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables,engine
 from contextlib import asynccontextmanager
@@ -111,6 +111,9 @@ def get_tools():
             'message':'tools fetched successfully.'
         }
 
+class ToolDefinition(BaseModel):
+    tool_definition: str=Field(...,description="The definition of the tool.")
+
 @app.post('/tool/add')
 def add_tool(tool:ToolDefinition):
     tool_data=tool_to_ast(tool.tool_definition)
@@ -147,7 +150,10 @@ def add_tool(tool:ToolDefinition):
             'status':'error',
             'message':tool_data.get('error')
         }
-    
+
+class Query(BaseModel):
+    query: str=Field(...,description="The query to be searched.")
+
 @app.post('/tool/generate')
 def generate_tool(data:Query):
     tool_response=generate(data.query,llm)
@@ -248,6 +254,44 @@ def delete_integration(id:int):
                 'status':'success',
                 'message':'Integration deleted successfully.'
             }
+
+@app.get('/conversation/{session_id}')
+def get_session(session_id:str):
+     with Session(engine) as session:
+        conversation = session.exec(select(Conversation).where(Conversation.id == session_id)).first()
+        if conversation:
+            messages = [
+                {
+                    "id": message.id,
+                    "role": message.role,
+                    "content": message.content,
+                    "timestamp": message.timestamp
+                }
+                for message in conversation.messages
+            ]
+
+            return {
+                "status": "success",
+                "session_id": session_id,
+                "title": conversation.title,
+                "messages": messages,
+                "message": "Conversation fetched successfully."
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Conversation not found."
+            }
+
+@app.get('/conversation')
+def get_conversation():
+     with Session(engine) as session:
+        conversation = session.exec(select(Conversation)).all()
+        return {
+            'status':'success',
+            'conversation':conversation.model_dump(),
+            'message':'Conversations fetched successfully.'
+        }
 
 
 if __name__=='__main__':
