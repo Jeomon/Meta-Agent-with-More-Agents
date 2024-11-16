@@ -66,6 +66,12 @@ const store=createStore({
         addIntegration(state,integration){
             state.integrations.push(integration)
         },
+        editIntegration(state,{id,name,key}){
+            const integration=state.integrations.find(integration=>integration.id==id)
+            state.integrations=state.integrations.filter(integration=>integration.id!=id)
+            integration.key=key
+            state.integrations.push(integration)
+        },
         deleteIntegration(state,id){
             state.integrations=state.integrations.filter(integration=>integration.id!=id)
         }
@@ -123,7 +129,7 @@ const store=createStore({
             console.log(data.message)
         },
         async getIntegrations({commit}){
-            let response=await axios.get(`integration/all`)
+            let response=await axios.get(`integration`)
             let data= response.data
             if (data.status=='success'){ 
                 let integrations=data.integrations
@@ -132,7 +138,7 @@ const store=createStore({
             console.log(data.message)
         },
         async addIntegration({commit},integration){
-            let response=await axios.post(`integration/add`,JSON.stringify(integration))
+            let response=await axios.post(`integration`,JSON.stringify(integration))
             let data= response.data
             if (data.status=='success'){ 
                 let integration=data.integration
@@ -140,16 +146,22 @@ const store=createStore({
             }
             console.log(data.message)
         },
+        async editIntegration({commit},integration){
+            let response=await axios.put(`integration`,integration)
+            let data= response.data
+            if (data.status=='success'){
+                let integration=data.integration
+                commit('editIntegration',integration)
+            }
+            console.log(data.message);
+        },
         async deleteIntegration({commit},{id}){
-            console.log(id);
-            
-            let response=await axios.delete(`integration/delete/${id}`)
+            let response=await axios.delete(`integration/${id}`)
             let data= response.data
             if (data.status=='success'){
                 commit('deleteIntegration',id)
             }
             console.log(data.message);
-            
         }
     }
 })

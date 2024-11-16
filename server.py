@@ -1,4 +1,4 @@
-from src.tool import extract_tools_from_module,tool_to_ast,save_tool_to_module,remove_tool_from_module
+from src.tool import tool_to_ast,save_tool_to_module,remove_tool_from_module
 from models import Agent,Tool,Query,ToolDefinition,Integration
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,28 +12,18 @@ from dotenv import load_dotenv
 from experimental import *
 from os import environ
 import uvicorn
-import ast
 
 load_dotenv()
-api_key=environ.get('GROQ_API_KEY1')
+api_key=environ.get('GROQ_API_KEY')
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_):
     create_db_and_tables()
+    
     yield
 
 app=FastAPI(lifespan=lifespan)
 llm=ChatGroq(model='llama-3.1-70b-versatile',api_key=api_key,temperature=0)
-
-with Session(engine) as session:
-    agents=session.exec(select(Agent)).all()
-    tools=session.exec(select(Tool)).all()
-    session.close()
-
-agents=[agent.model_dump() for agent in agents]
-for agent in agents:
-    agent['tools']=[eval(tool.function_name) for tool_name in agent['tools'].split(',') for tool in tools if tool.name==tool_name]
-agent=MetaAgent(agents=agents,llm=llm,verbose=True)
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,6 +35,14 @@ app.add_middleware(
 
 @app.websocket("/ws")
 async def socket(websocket:WebSocket):
+    with Session(engine) as session:
+        agents=session.exec(select(Agent)).all()
+        tools=session.exec(select(Tool)).all()
+        session.close()
+        agents=[agent.model_dump() for agent in agents]
+    for agent in agents:
+        agent['tools']=[eval(tool.function_name) for tool_name in agent['tools'].split(',') for tool in tools if tool.name==tool_name]
+    agent=MetaAgent(agents=agents,llm=llm,verbose=True)
     await websocket.accept()
     while True:
         try:
@@ -184,7 +182,7 @@ def delete_tool(id:int):
                 'message':'tool not found.'
             }
         
-@app.get('/integration/all')
+@app.get('/integration')
 def get_integrations():
     with Session(engine) as session:
         integrations=session.exec(select(Integration)).all()
@@ -194,7 +192,7 @@ def get_integrations():
             'message':'integrations fetched successfully.'
         }
 
-@app.post('/integration/add')
+@app.post('/integration')
 def add_integration(integration:Integration):
     with Session(engine) as session:
         stmt=select(Integration).where(Integration.name==integration.name)
@@ -214,7 +212,27 @@ def add_integration(integration:Integration):
                 'message':'Integration added successfully.'
             }
 
-@app.delete('/integration/delete/{id}')
+@app.put('/integration')
+def edit_integration(integration:Integration):
+    with Session(engine) as session:
+        stmt=select(Integration).where((Integration.id==integration.id)&(Integration.name==integration.name))
+        existing_integration=session.exec(stmt).first()
+        if existing_integration:
+            existing_integration.key=integration.key
+            session.commit()
+            session.refresh(existing_integration)
+            return {
+                'status':'success',
+                'integration':existing_integration.model_dump(),
+                'message':'Integration updated successfully.'
+            }
+        else:
+            return {
+                'status':'error',
+                'message':'Integration not found.'
+            }
+
+@app.delete('/integration/{id}')
 def delete_integration(id:int):
     with Session(engine) as session:
         existing_integration=session.exec(select(Integration).where(Integration.id==id)).first()

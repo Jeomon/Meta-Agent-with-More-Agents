@@ -8,3 +8,4 @@ tenacity
 sqlmodel
 fastapi
 uvicorn[standard]
+Ipython

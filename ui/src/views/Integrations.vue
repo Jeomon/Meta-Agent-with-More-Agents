@@ -5,9 +5,9 @@
             <span @click="addIntegrationHandler" class="cursor-pointer p-2 bg-slate-300 rounded-md text-lg hover:bg-slate-400">Add Integration</span>
         </div>
         <hr>
-        <table class="w-[50%] rounded-lg mt-5  table-fixed">
+        <table class="w-[50%] rounded-lg mt-5 table-auto">
             <thead>
-                <tr class="border-b bg-white">
+                <tr class="border-b bg-slate-100">
                     <th class="text-left py-3 px-2 font-medium">Name</th>
                     <th class="text-left py-3 px-2 font-medium">API Key</th>
                     <th class="text-left py-3 px-2 font-medium">Action</th>
@@ -19,8 +19,8 @@
                     <td class="py-3 px-2 font-mono flex justify-between">
                         <span>{{ maskKey(integration.key) }}</span>
                     </td>
-                    <td>
-                        <span class="mx-1 bg-yellow-300 p-1 rounded-md font-medium cursor-pointer" @click="editIntegration(integration.id)">Edit</span>
+                    <td class="p-1">
+                        <span class="mx-1 bg-yellow-300 p-1 rounded-md font-medium cursor-pointer" @click="editIntegrationHandler(integration.id,integration.name)">Edit</span>
                         <span class="mx-1 bg-red-400 p-1 rounded-md font-medium cursor-pointer" @click="()=>deleteIntegrationHandler(integration.id,integration.name)">Delete</span>
                     </td>                
                 </tr>
@@ -50,8 +50,8 @@
                 </form>
             </div>
         </div>
-        <div :style="{'display':isDelete?'block':'none'}" class="bg-slate-200/60 backdrop-blur-sm w-full h-full absolute top-0 left-0 block">
-            <div @click.stop class="w-[50%] mx-auto bg-slate-300/70 drop-shadow-md mt-[10%] rounded-md p-4">
+        <div @click="deleteIntegrationHandler" v-if="isDelete" class="bg-slate-200/60 backdrop-blur-sm w-full h-full absolute top-0 left-0 block">
+            <div @click.stop class="w-[50%] mx-auto bg-slate-200 drop-shadow-md mt-[10%] rounded-md p-4">
                 <h1 class="text-3xl font-medium my-1">Delete Integration</h1>
                 <p class="mb-4">
                     Are you sure you want to delete the integration "<strong>{{ integration.name }}</strong>"? 
@@ -61,6 +61,25 @@
                 <div class="flex justify-start gap-4 font-medium">
                     <button @click="()=>deleteIntegration(id)" class="bg-red-500 p-2 rounded-md shadow-md mt-2" type="button">Delete</button>
                     <button @click="()=>deleteIntegrationHandler(null,'')" class="bg-slate-200 p-2 rounded-md shadow-md mt-2" type="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div @click="editIntegrationHandler" v-if="isEdit" class="bg-slate-200/60 backdrop-blur-sm w-full h-full absolute top-0 left-0 block">
+            <div @click.stop class="w-[50%] mx-auto bg-slate-200 drop-shadow-md mt-[10%] rounded-md p-4">
+                <h1 class="text-3xl font-medium my-1">Edit Integration</h1>
+                <div class="my-4 flex flex-col gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label for="name">API Name: </label>
+                        <input disabled v-model="integration.name" class="shadow-sm rounded-md px-1.5 h-10 outline-none" type="text" id="name" placeholder="Enter the API name" />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label for="key">API Key: </label>
+                        <input v-model="integration.key" class="shadow-sm rounded-md px-1.5 h-10 outline-none" type="text" id="key" placeholder="Enter the API key" />
+                    </div>
+                    <div class="flex justify-start gap-4 font-medium">
+                        <button @click="()=>editIntegration(id)"class="bg-yellow-500 p-2 rounded-md shadow-md mt-2">Edit</button>
+                        <button @click="()=>editIntegrationHandler(null,'')"  class="bg-slate-200 p-2 rounded-md shadow-md mt-2">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,7 +98,8 @@ export default {
                 key: ''
             },
             isCreate: false,
-            isDelete: false
+            isDelete: false,
+            isEdit: false
         };
     },
     computed: {
@@ -91,6 +111,16 @@ export default {
     methods: {
         addIntegrationHandler() {
             this.isCreate = !this.isCreate;
+        },
+        editIntegrationHandler(id,name){
+            this.isEdit = !this.isEdit
+            if(id&&name){
+                this.id=id
+                this.integration.name=name
+            }else{
+                this.id=null
+                this.integration.name=''
+            }
         },
         deleteIntegrationHandler(id,name){
             this.isDelete = !this.isDelete
@@ -112,11 +142,20 @@ export default {
             }
         },
         maskKey(key) {
-            return key.slice(0, -3).replace(/./g, '*') + key.slice(-3);
+            if(key){
+                return key.slice(0, -3).replace(/./g, '*') + key.slice(-3);
+            }
+            else{
+                return '***'
+            }
         },
         editIntegration(id) {
-            console.log(`Edit integration with ID: ${id}`);
-            // Handle edit logic here
+            if (this.integration.name && this.integration.key) {
+                const name = this.integration.name;
+                const key = this.integration.key;
+                this.$store.dispatch('editIntegration',{id,name,key});
+                this.isEdit = false
+            }
         },
         deleteIntegration(id) {
             this.$store.dispatch('deleteIntegration',{id})

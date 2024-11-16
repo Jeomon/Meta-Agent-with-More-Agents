@@ -1,6 +1,11 @@
 <template>
     <div class="w-[85%] h-[89%] mx-auto py-5 px-10 overflow-y-auto scroll-smooth" ref="messageContainer">
-        <component v-for="message in getMessages" :key="message.id" :is="message.role=='user'?'HumanMessage':'AIMessage'" :content="message.content"/>
+        <div v-if="getMessages.length==0" class="flex flex-col items-center mt-[38vh]">
+            <h1 class="text-4xl font-normal">Hi, How can I help you?</h1>
+        </div>
+        <div v-else>
+            <component v-for="message in getMessages" :key="message.id" :is="message.role=='user'?'HumanMessage':'AIMessage'" :content="message.content"/>
+        </div>
     </div>
 </template>
 <script>

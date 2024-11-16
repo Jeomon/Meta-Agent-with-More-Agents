@@ -4,47 +4,40 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-class StockPrice(BaseModel):
-    symbol:str=Field(...,description="The stock symbol.",example=['AAPL'])
+class WeatherAPI(BaseModel):
+    location: str = Field(..., description="The location's name or geographical coordinates (latitude and longitude) in the format 'lat,lon'", example=['London', '48.8567,2.3508'])
 
-@tool("Stock Price Tool",args_schema=StockPrice)
-def stock_price_tool(symbol:str):
+@tool("Weather API Tool", args_schema=WeatherAPI)
+def weather_api_tool(location: str) -> str:
     '''
-    Retrieves the current stock price for the given stock symbol using Alpha Vantage API.
+    Fetches the current weather data for a specific location using the OpenWeatherMap API and returns the result in JSON format.
     '''
     import requests
     import os
     import json
-    api_key=os.environ.get('ALPHA_VANTAGE_API_KEY')
+
+    api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
+    base_url = 'http://api.openweathermap.org/data/2.5/weather'
+
     try:
-        response=requests.get(f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={api_key}')
-        data=response.json()
-        if 'Global Quote' in data:
-            return f"Current stock price for {symbol}: ${data['Global Quote']['05. price']}"
+        if ',' in location:
+            lat, lon = location.split(',')
+            params = {
+                'lat': lat,
+                'lon': lon,
+                'appid': api_key,
+                'units': 'metric'
+            }
         else:
-            return f"Failed to retrieve stock price for {symbol}."
-    except Exception as err:
+            params = {
+                'q': location,
+                'appid': api_key,
+                'units': 'metric'
+            }
+
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        return json.dumps(response.json(), indent=4)
+    except requests.exceptions.RequestException as err:
         return f"Error: {err}"
-
-class Weather(BaseModel):
-    city:str=Field(...,description="The city to get the weather for.",example=['New York'])
-    api_key:str=Field(...,description="The OpenWeatherMap API key.",example=['your_api_key'])
-
-@tool("Weather Tool",args_schema=Weather)
-def weather_tool(city:str,api_key:str):
-    '''
-    Gets the current weather for the given city using OpenWeatherMap API and returns the formatted results.
-    '''
-    import requests
-    import os
-    api_key=os.environ.get('OPENWEATHERMAP_API_KEY')
-    try:
-        response=requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric')
-        data=response.json()
-        weather=data['weather'][0]['description']
-        temperature=data['main']['temp']
-        humidity=data['main']['humidity']
-        return f'Weather in {city}: {weather}\nTemperature: {temperature}°C\nHumidity: {humidity}%'
-    except Exception as err:
-        return f'Error: {err}'
 
