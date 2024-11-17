@@ -19,7 +19,6 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-
 export default {
   data() {
     return {
@@ -28,6 +27,9 @@ export default {
       current_message:null,
       query:''
     };
+  },
+  computed: {
+    ...mapGetters(['getConversation'])
   },
   mounted() {
     this.heightAdjust();
@@ -42,7 +44,7 @@ export default {
       const data = JSON.parse(event.data);
       console.log(data);
       if(data.current_agent && !this.current_message){
-        this.current_message={id: Date.now(), role: 'assistant', content: data }
+        this.current_message={'role': 'assistant', content: data}
         this.$store.commit('addMessage',this.current_message)
       }
       else if(data.current_agent && this.current_message){
@@ -50,7 +52,9 @@ export default {
       }
       else if(data.output){
         this.$store.commit('updateMessage', { ...this.current_message, content: data })
+        this.$store.dispatch('addMessage',{role: 'assistant', content: data.output, timestamp: Date.now(), conversation_id: this.getConversation.id})
         this.current_message=null
+
       }
     };
 
@@ -62,8 +66,8 @@ export default {
       console.error('WebSocket error:', error);
     };
   },
-  computed: {
-    ...mapGetters(['getQuery']),
+  computed:{
+    ...mapGetters(['getConversation'])
   },
   methods: {
     heightAdjust() {
@@ -78,10 +82,9 @@ export default {
       let query = this.query.trim();
       if (query) {
         // Only send the message if the socket is open
-        if (this.socket.readyState === WebSocket.OPEN) {
+        if (this.socket.readyState === WebSocket.OPEN && this.getConversation.id) {
+          this.$store.dispatch('addMessage',{role: 'user', content: query, timestamp: Date.now(), conversation_id:this.getConversation.id});
           this.socket.send(query);
-          this.$store.commit('setQuery', query);
-          this.$store.commit('addMessage', {id: Date.now(), role: 'user', 'content': query });
           this.query = ''; // Clear the textarea after sending
         } else {
           console.error('WebSocket is not open. Unable to send message.');

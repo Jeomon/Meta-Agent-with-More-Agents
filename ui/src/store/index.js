@@ -3,7 +3,7 @@ import { createStore } from "vuex";
 
 const store=createStore({
     state: {
-        query: '',
+        conversation:{},
         messages: [],
         conversations:[],
         agents:[],
@@ -11,18 +11,14 @@ const store=createStore({
         integrations:[]
     },
     getters:{
-        getQuery(state) {
-            return state.query
+        getConversation(state){
+            return state.conversation
         },
         getConversations(state){
             return state.conversations
         },
         getMessages(state) {
             return state.messages
-        },
-        
-        getLastMessage(state) {
-            return state.messages[state.messages.length - 1]
         },
         getAgents(state) {
             return state.agents
@@ -35,9 +31,6 @@ const store=createStore({
         }
     },
     mutations:{
-        setQuery(state, query) {
-            state.query = query;
-        },
         addMessage(state, message) {
             state.messages.push(message)
         },
@@ -46,6 +39,9 @@ const store=createStore({
             if (message) {
                 message.content = content
             }
+        },
+        getMessages(state,messages){
+            state.messages=messages
         },
         addAgent(state,agent){
             state.agents.push(agent)
@@ -72,7 +68,7 @@ const store=createStore({
             state.integrations.push(integration)
         },
         editIntegration(state,{id,name,key}){
-            const integration=state.integrations.find(integration=>integration.id==id)
+            let integration=state.integrations.find(integration=>integration.id==id)
             state.integrations=state.integrations.filter(integration=>integration.id!=id)
             integration.key=key
             state.integrations.push(integration)
@@ -82,7 +78,14 @@ const store=createStore({
         },
         getConversations(state,conversations){
             state.conversations=conversations
-        }
+        },
+        addConversation(state,conversation){
+            state.conversations.push(conversation)
+        },
+        getConversation(state,{id,title,messages}){
+            state.conversation={id,title}
+            state.messages=messages
+        },
     },
     actions:{
         async addAgent({commit},{name,description,tools}){
@@ -180,8 +183,34 @@ const store=createStore({
             }
             console.log(data.message);
         },
-        async createConversation({commit}){
-            
+        async getConversation({commit},conversation_id){
+            let response=await axios.get(`conversation/${conversation_id}`)
+            let data=response.data
+            if(data.status=='success'){
+                let conversation=data.conversation
+                commit('getConversation',conversation)
+            }
+            console.log(data.message);
+        },
+        async addConversation({commit},title){
+            let response=await axios.post(`conversation`,JSON.stringify({
+                'title':title
+            }))
+            let data=response.data
+            if(data.status=='success'){
+                let conversation=data.conversation
+                commit('addConversation',conversation)
+            }
+            console.log(data.message);
+        },
+        async addMessage({commit},message){
+            let response=await axios.post(`message`,JSON.stringify(message))
+            let data=response.data
+            if(data.status=='success'){
+                let message=data.current_message
+                commit('addMessage',message)
+            }
+            console.log(data.message);
         }
     }
 })

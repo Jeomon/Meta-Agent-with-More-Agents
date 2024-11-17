@@ -1,6 +1,6 @@
 from src.tool import tool_to_ast,save_tool_to_module,remove_tool_from_module
+from models import Agent,Tool,Integration,Conversation,Message
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect
-from models import Agent,Tool,Integration,Conversation
 from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables,engine
 from contextlib import asynccontextmanager
@@ -9,7 +9,9 @@ from src.agent.meta import MetaAgent
 from src.tool.generate import generate
 from sqlmodel import Session,select
 from dotenv import load_dotenv
+from datetime import datetime
 from experimental import *
+from uuid import uuid4
 from os import environ
 import uvicorn
 
@@ -255,36 +257,8 @@ def delete_integration(id:int):
                 'message':'Integration deleted successfully.'
             }
 
-@app.get('/conversation/{session_id}')
-def get_session(session_id:str):
-     with Session(engine) as session:
-        conversation = session.exec(select(Conversation).where(Conversation.id == session_id)).first()
-        if conversation:
-            messages = [
-                {
-                    "id": message.id,
-                    "role": message.role,
-                    "content": message.content,
-                    "timestamp": message.timestamp
-                }
-                for message in conversation.messages
-            ]
-
-            return {
-                "status": "success",
-                "session_id": session_id,
-                "title": conversation.title,
-                "messages": messages,
-                "message": "Conversation fetched successfully."
-            }
-        else:
-            return {
-                "status": "error",
-                "message": "Conversation not found."
-            }
-
 @app.get('/conversation')
-def get_conversation():
+def get_conversations():
      with Session(engine) as session:
         conversations = session.exec(select(Conversation)).all()
         return {
@@ -292,6 +266,79 @@ def get_conversation():
             'conversations':conversations,
             'message':'Conversations fetched successfully.'
         }
+     
+@app.get('/conversation/{id}')
+def get_conversation(id:str):
+    with Session(engine) as session:
+        existing_conversation=session.exec(select(Conversation).where(Conversation.id==id)).first()
+        if existing_conversation:
+            return {
+                'status': 'success',
+                'conversation': {
+                    'id':id,
+                    'title':existing_conversation.title,
+                    'messages':[message.model_dump() for message in existing_conversation.messages],
+                },
+                'message': f'Messages of the conversation {id} fetched successfully.'
+            }
+        else:
+            return {
+                'status': 'error',
+                'message': 'Conversation not found.'
+            }
+
+class ConversationData(BaseModel):
+    title: str=Field(...,description='Title of the conversation')
+
+@app.post('/conversation')
+def add_conversation(data:ConversationData):
+    with Session(engine) as session:
+        id=str(uuid4())
+        conversation = Conversation(id=id,title=data.title,messages=[])
+        session.add(conversation)
+        session.commit()
+        session.refresh(conversation)
+    return {
+        'status':'success',
+        'conversation':conversation.model_dump(),
+        'message':'Conversation created successfully.'
+    }
+
+class MessageData(BaseModel):
+    role:str=Field(...,description='role of the message')
+    content:str=Field(...,description='content of the message')
+    timestamp:datetime=Field(...,description='timestamp of message generated')
+    conversation_id:str=Field(...,description='the conversation to which the message belongs')
+
+
+@app.post('/message')
+def add_message(data:MessageData):
+    with Session(engine) as session:
+        id=str(uuid4())
+        existing_conversation=session.exec(select(Conversation).where(Conversation.id==data.conversation_id)).first()
+        if existing_conversation:
+            parameters={
+                'id':id,
+                'role':data.role,
+                'content':data.content,
+                'timestamp':data.timestamp,
+                'conversation':existing_conversation
+            }
+            message = Message(**parameters)
+            session.add(message)
+            session.commit()
+            session.refresh(message)
+            return {
+                'status':'success',
+                'current_message':message.model_dump(),
+                'message':f'Message {id} added successfully to the current conversation.'
+            }
+        else:
+            return {
+                'status':'error',
+                'message':'Conversation not found.'
+            }
+
 
 
 if __name__=='__main__':

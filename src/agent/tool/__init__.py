@@ -95,7 +95,7 @@ class ToolAgent(BaseAgent):
                 messages.append(HumanMessage(str(error)))
                 print(f'Error: {error}')
                 iteration+=1
-        return {**state,'tool_data':debug_tool_data,'error':error}
+        return {**state,'tool_data':debug_tool_data.content,'error':error}
     
     def delete_tool(self,state:AgentState):
         tool=self.find_the_tool(state.get('input'))

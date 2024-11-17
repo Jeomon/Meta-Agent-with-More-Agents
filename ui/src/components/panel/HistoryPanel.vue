@@ -5,7 +5,7 @@
     </div>
     <hr>
     <div v-if="getConversations.length>0" class="flex flex-col my-2 gap-y-1 text-base">
-        <Conversation v-for="conversation in getConversations" :key="conversation.id" :title="conversation.title"/>
+        <Conversation @click="()=>getConversation(conversation.id)" v-for="conversation in getConversations" :key="conversation.id" :title="conversation.title"/>
     </div>
     <div v-else class="flex flex-row items-center justify-center h-[75%]">
         <span class="text-lg">No conversations found...</span>
@@ -23,9 +23,15 @@ export default {
     computed:{
         ...mapGetters(['getConversations'])
     },
+    mounted(){
+        this.$store.dispatch('getConversations')
+    },
     methods:{
         createConversationHandler(){
-            this.$store.dispatch('createConversation')
+            this.$store.dispatch('addConversation','Untitled Conversation')
+        },
+        getConversation(conversation_id){
+            this.$store.dispatch('getConversation',conversation_id)
         }
     },
     components: {

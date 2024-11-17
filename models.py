@@ -30,4 +30,4 @@ class Message(SQLModel, table=True):
     content: str
     role: str
     timestamp: datetime = Field(default_factory=datetime.now)
-    conversation: "Conversation" = Relationship(back_populates="messages")
+    conversation: Conversation = Relationship(back_populates="messages")

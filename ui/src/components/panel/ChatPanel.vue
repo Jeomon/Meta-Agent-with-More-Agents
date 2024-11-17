@@ -1,6 +1,6 @@
 <template>
     <div class="w-[85%] h-[89%] mx-auto py-5 px-10 overflow-y-auto scroll-smooth" ref="messageContainer">
-        <div v-if="getMessages.length==0" class="flex flex-col items-center mt-[38vh]">
+        <div v-if="!getMessages||getMessages.length==0" class="flex flex-col items-center mt-[38vh]">
             <h1 class="text-4xl font-normal">Hi, How can I help you?</h1>
         </div>
         <div v-else>
