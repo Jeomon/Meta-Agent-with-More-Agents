@@ -86,6 +86,9 @@ const store=createStore({
             state.conversation={id,title}
             state.messages=messages
         },
+        deleteConversation(state,id){
+            state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
+        }
     },
     actions:{
         async addAgent({commit},{name,description,tools}){
@@ -203,6 +206,14 @@ const store=createStore({
             }
             console.log(data.message);
         },
+        async deleteConversation({commit},id){
+            let response=await axios.delete(`conversation/${id}`)
+            let data=response.data
+            if(data.status=='success'){
+                commit('deleteConversation',id)
+            }
+            console.log(data.message);
+        },
         async addMessage({commit},message){
             let response=await axios.post(`message`,JSON.stringify(message))
             let data=response.data
@@ -211,7 +222,8 @@ const store=createStore({
                 commit('addMessage',message)
             }
             console.log(data.message);
-        }
+        },
+        
     }
 })
 

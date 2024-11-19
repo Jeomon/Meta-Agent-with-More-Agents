@@ -22,7 +22,7 @@ class Integration(SQLModel, table=True):
 class Conversation(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)
     title: str
-    messages: List["Message"] = Relationship(back_populates="conversation")
+    messages: List["Message"] = Relationship(back_populates="conversation",sa_relationship_kwargs={'cascade':"all, delete"})
 
 class Message(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)

@@ -69,8 +69,7 @@ def get_agents():
 @app.post('/agent/add')
 def add_agent(agent:Agent):
     with Session(engine) as session:
-        stmt=select(Agent).where(Agent.name==agent.name)
-        existing_agent=session.exec(stmt).first()
+        existing_agent=session.get(Agent,{'name':agent.name})
         if existing_agent:
             return {
                 'status':'error',
@@ -88,8 +87,7 @@ def add_agent(agent:Agent):
 @app.delete('/agent/delete/{id}')
 def delete_agent(id:int):
     with Session(engine) as session:
-        stmt=select(Agent).where(Agent.id==id)
-        agent=session.exec(stmt).first()
+        agent=session.get(Agent,id)
         if agent:
             session.delete(agent)
             session.commit()
@@ -125,8 +123,7 @@ def add_tool(tool:ToolDefinition):
         description=tool_data.get('description')
         tool_definition=tool_data.get('tool')
         with Session(engine) as session:
-            stmt=select(Tool).where(Tool.name==tool_name)
-            existing_tool=session.exec(stmt).first()
+            existing_tool=session.get(Tool,{'name':tool_name})
             if existing_tool:
                 return {
                     'status':'error',
@@ -171,8 +168,7 @@ def generate_tool(data:Query):
 @app.delete('/tool/delete/{id}')
 def delete_tool(id:int):
     with Session(engine) as session:
-        stmt=select(Tool).where(Tool.id==id)
-        tool=session.exec(stmt).first()
+        tool=session.get(Tool,id)
         if tool:
             remove_tool_from_module('experimental.py',{
                 'name':tool.name,
@@ -203,8 +199,7 @@ def get_integrations():
 @app.post('/integration')
 def add_integration(integration:Integration):
     with Session(engine) as session:
-        stmt=select(Integration).where(Integration.name==integration.name)
-        existing_integration=session.exec(stmt).first()
+        existing_integration=session.get(Integration,{'name':integration.name})
         if existing_integration:
             return {
                 'status':'error',
@@ -223,8 +218,7 @@ def add_integration(integration:Integration):
 @app.put('/integration')
 def edit_integration(integration:Integration):
     with Session(engine) as session:
-        stmt=select(Integration).where((Integration.id==integration.id)&(Integration.name==integration.name))
-        existing_integration=session.exec(stmt).first()
+        existing_integration=session.get(Integration,{'id':integration.id,'name':integration.name})
         if existing_integration:
             existing_integration.key=integration.key
             session.commit()
@@ -243,7 +237,7 @@ def edit_integration(integration:Integration):
 @app.delete('/integration/{id}')
 def delete_integration(id:int):
     with Session(engine) as session:
-        existing_integration=session.exec(select(Integration).where(Integration.id==id)).first()
+        existing_integration=session.get(Integration,id)
         if not existing_integration:
             return {
                 'status':'error',
@@ -270,7 +264,7 @@ def get_conversations():
 @app.get('/conversation/{id}')
 def get_conversation(id:str):
     with Session(engine) as session:
-        existing_conversation=session.exec(select(Conversation).where(Conversation.id==id)).first()
+        existing_conversation=session.get(Conversation,id)
         if existing_conversation:
             return {
                 'status': 'success',
@@ -304,19 +298,37 @@ def add_conversation(data:ConversationData):
         'message':'Conversation created successfully.'
     }
 
+@app.delete('/conversation/{id}')
+def delete_conversation(id:str):
+    with Session(engine) as session:
+        existing_conversation=session.get(Conversation,id)
+        if existing_conversation:
+            session.delete(existing_conversation)
+            session.commit()
+            return {
+                'status': 'success',
+                'message': f'Conversation {id} deleted successfully.'
+            }
+        else:
+            return {
+                'status':'error',
+                'message':'Conversation not found.'
+            }
+
 class MessageData(BaseModel):
     role:str=Field(...,description='role of the message')
     content:str=Field(...,description='content of the message')
     timestamp:datetime=Field(...,description='timestamp of message generated')
     conversation_id:str=Field(...,description='the conversation to which the message belongs')
 
-
 @app.post('/message')
 def add_message(data:MessageData):
     with Session(engine) as session:
         id=str(uuid4())
-        existing_conversation=session.exec(select(Conversation).where(Conversation.id==data.conversation_id)).first()
+        existing_conversation=session.get(Conversation,data.conversation_id)
         if existing_conversation:
+            if len(existing_conversation.messages)==0:
+                existing_conversation.title=data.content
             parameters={
                 'id':id,
                 'role':data.role,
@@ -338,6 +350,7 @@ def add_message(data:MessageData):
                 'status':'error',
                 'message':'Conversation not found.'
             }
+
 
 
 
