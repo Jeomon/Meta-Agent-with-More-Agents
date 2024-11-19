@@ -91,7 +91,8 @@ class ToolAgent(BaseAgent):
                     save_tool_to_module(self.location,debug_tool_data.content)
                 if self.verbose:
                     print(f'Fixed {debug_tool_data.content.get('name')} and saved to {self.location} successfully.')
-            except Exception as error:
+            except Exception as e:
+                error=str(e)
                 messages.append(HumanMessage(str(error)))
                 print(f'Error: {error}')
                 iteration+=1

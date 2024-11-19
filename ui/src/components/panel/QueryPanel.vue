@@ -42,19 +42,8 @@ export default {
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(data);
-      if(data.current_agent && !this.current_message){
-        this.current_message={'role': 'assistant', content: data}
-        this.$store.commit('addMessage',this.current_message)
-      }
-      else if(data.current_agent && this.current_message){
-        this.$store.commit('updateMessage', { ...this.current_message, content: data })
-      }
-      else if(data.output){
-        this.$store.commit('updateMessage', { ...this.current_message, content: data })
-        this.$store.dispatch('addMessage',{role: 'assistant', content: data.output, timestamp: Date.now(), conversation_id: this.getConversation.id})
-        this.current_message=null
-
+      if(data.output){
+        this.$store.dispatch('addMessage',{role: 'assistant', content: data.output, timestamp: Date.now(), conversation_id:this.getConversation.id});
       }
     };
 
@@ -78,13 +67,13 @@ export default {
         textarea.style.height = `${newHeight}px`;
       }
     },
-    submitQuery() {
+    async submitQuery() {
       let query = this.query.trim();
       if (query) {
         // Only send the message if the socket is open
         if (this.socket.readyState === WebSocket.OPEN && this.getConversation.id) {
-          this.$store.dispatch('addMessage',{role: 'user', content: query, timestamp: Date.now(), conversation_id:this.getConversation.id});
-          this.socket.send(query);
+          await this.$store.dispatch('addMessage',{role: 'user', content: query, timestamp: Date.now(), conversation_id:this.getConversation.id});
+          await this.socket.send(query);
           this.query = ''; // Clear the textarea after sending
         } else {
           console.error('WebSocket is not open. Unable to send message.');
