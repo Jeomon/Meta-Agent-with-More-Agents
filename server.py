@@ -1,17 +1,20 @@
-from src.tool import tool_to_ast,save_tool_to_module,remove_tool_from_module
-from models import Agent,Tool,Integration,Conversation,Message
 from fastapi import FastAPI,WebSocket,WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from database import create_db_and_tables,engine
 from contextlib import asynccontextmanager
+from api.conversation import conversation
 from src.inference.groq import ChatGroq
+from api.integration import integration
 from src.agent.meta import MetaAgent
-from src.tool.generate import generate
+from api.init_database import engine
 from sqlmodel import Session,select
+from api.models import Agent,Tool
+from api.message import message
 from dotenv import load_dotenv
-from datetime import datetime
+from sqlmodel import SQLModel
+from api.agent import agent
+from api.user import user
 from experimental import *
-from uuid import uuid4
+from api.tool import tool
 from os import environ
 import uvicorn
 
@@ -20,8 +23,7 @@ api_key=environ.get('GROQ_API_KEY')
 
 @asynccontextmanager
 async def lifespan(_):
-    create_db_and_tables()
-    
+    SQLModel.metadata.create_all(engine)
     yield
 
 app=FastAPI(lifespan=lifespan)
@@ -56,305 +58,12 @@ async def socket(websocket:WebSocket):
         except WebSocketDisconnect:
             break
 
-@app.get('/agent/all')
-def get_agents():
-    with Session(engine) as session:
-        agents=session.exec(select(Agent)).all()
-        return {
-            'status':'success',
-            'agents':agents,
-            'message':'agents fetched successfully.'
-        }
-
-@app.post('/agent/add')
-def add_agent(agent:Agent):
-    with Session(engine) as session:
-        existing_agent=session.get(Agent,{'name':agent.name})
-        if existing_agent:
-            return {
-                'status':'error',
-                'message':'agent already exists.'
-            }
-        else:
-            session.add(agent)
-            session.commit()
-            return {
-                'status':'success',
-                'agent':agent.model_dump(),
-                'message':'agent added successfully.'
-            }
-
-@app.delete('/agent/delete/{id}')
-def delete_agent(id:int):
-    with Session(engine) as session:
-        agent=session.get(Agent,id)
-        if agent:
-            session.delete(agent)
-            session.commit()
-            return {
-                'status':'success',
-                'message':'agent deleted successfully.'
-            }
-        else:
-            return {
-                'status':'error',
-                'message':'agent not found.'
-            }
-
-@app.get('/tool/all')
-def get_tools():
-    with Session(engine) as session:
-        tools=session.exec(select(Tool)).all()
-        return {
-            'status':'success',
-            'tools':tools,
-            'message':'tools fetched successfully.'
-        }
-
-class ToolDefinition(BaseModel):
-    tool_definition: str=Field(...,description="The definition of the tool.")
-
-@app.post('/tool/add')
-def add_tool(tool:ToolDefinition):
-    tool_data=tool_to_ast(tool.tool_definition)
-    if not tool_data.get('error'):
-        tool_name=tool_data.get('tool_name')
-        func_name=tool_data.get('func_name')
-        description=tool_data.get('description')
-        tool_definition=tool_data.get('tool')
-        with Session(engine) as session:
-            existing_tool=session.get(Tool,{'name':tool_name})
-            if existing_tool:
-                return {
-                    'status':'error',
-                    'message':'tool already exists.'
-                }
-            else:
-                tool=Tool(**{
-                    'name':tool_name,
-                    'function_name':func_name,
-                    'description':description
-                })
-                session.add(tool)
-                session.commit()
-                session.refresh(tool)
-                save_tool_to_module('experimental.py',tool_definition)
-                return {
-                    'status':'success',
-                    'tool':tool.model_dump(),
-                    'message':'tool added successfully.'
-                }
-    else:
-        return {
-            'status':'error',
-            'message':tool_data.get('error')
-        }
-
-class Query(BaseModel):
-    query: str=Field(...,description="The query to be searched.")
-
-@app.post('/tool/generate')
-def generate_tool(data:Query):
-    tool_response=generate(data.query,llm)
-    tool_name=tool_response.get('name')
-    func_name=tool_response.get('tool_name')
-    tool_definition=tool_response.get('tool')
-    return {
-        'status':'success',
-        'tool_name':tool_name,
-        'func_name':func_name,
-        'tool_definition':tool_definition
-    }
-@app.delete('/tool/delete/{id}')
-def delete_tool(id:int):
-    with Session(engine) as session:
-        tool=session.get(Tool,id)
-        if tool:
-            remove_tool_from_module('experimental.py',{
-                'name':tool.name,
-                'tool_name':tool.function_name
-            })
-            session.delete(tool)
-            session.commit()
-            return {
-                'status':'success',
-                'message':'tool deleted successfully.'
-            }
-        else:
-            return {
-                'status':'error',
-                'message':'tool not found.'
-            }
-        
-@app.get('/integration')
-def get_integrations():
-    with Session(engine) as session:
-        integrations=session.exec(select(Integration)).all()
-        return {
-            'status':'success',
-            'integrations':integrations,
-            'message':'integrations fetched successfully.'
-        }
-
-@app.post('/integration')
-def add_integration(integration:Integration):
-    with Session(engine) as session:
-        existing_integration=session.get(Integration,{'name':integration.name})
-        if existing_integration:
-            return {
-                'status':'error',
-                'message':'Integration already exists.'
-            }
-        else:
-            session.add(integration)
-            session.commit()
-            session.refresh(integration)
-            return {
-                'status':'success',
-                'integration':integration.model_dump(),
-                'message':'Integration added successfully.'
-            }
-
-@app.put('/integration')
-def edit_integration(integration:Integration):
-    with Session(engine) as session:
-        existing_integration=session.get(Integration,{'id':integration.id,'name':integration.name})
-        if existing_integration:
-            existing_integration.key=integration.key
-            session.commit()
-            session.refresh(existing_integration)
-            return {
-                'status':'success',
-                'integration':existing_integration.model_dump(),
-                'message':'Integration updated successfully.'
-            }
-        else:
-            return {
-                'status':'error',
-                'message':'Integration not found.'
-            }
-
-@app.delete('/integration/{id}')
-def delete_integration(id:int):
-    with Session(engine) as session:
-        existing_integration=session.get(Integration,id)
-        if not existing_integration:
-            return {
-                'status':'error',
-                'message':'Integration not found.'
-            }
-        else:
-            session.delete(existing_integration)
-            session.commit()
-            return {
-                'status':'success',
-                'message':'Integration deleted successfully.'
-            }
-
-@app.get('/conversation')
-def get_conversations():
-     with Session(engine) as session:
-        conversations = session.exec(select(Conversation)).all()
-        return {
-            'status':'success',
-            'conversations':conversations,
-            'message':'Conversations fetched successfully.'
-        }
-     
-@app.get('/conversation/{id}')
-def get_conversation(id:str):
-    with Session(engine) as session:
-        existing_conversation=session.get(Conversation,id)
-        if existing_conversation:
-            return {
-                'status': 'success',
-                'conversation': {
-                    'id':id,
-                    'title':existing_conversation.title,
-                    'messages':[message.model_dump() for message in existing_conversation.messages],
-                },
-                'message': f'Messages of the conversation {id} fetched successfully.'
-            }
-        else:
-            return {
-                'status': 'error',
-                'message': 'Conversation not found.'
-            }
-
-class ConversationData(BaseModel):
-    title: str=Field(...,description='Title of the conversation')
-
-@app.post('/conversation')
-def add_conversation(data:ConversationData):
-    with Session(engine) as session:
-        id=str(uuid4())
-        conversation = Conversation(id=id,title=data.title,messages=[])
-        session.add(conversation)
-        session.commit()
-        session.refresh(conversation)
-    return {
-        'status':'success',
-        'conversation':conversation.model_dump(),
-        'message':'Conversation created successfully.'
-    }
-
-@app.delete('/conversation/{id}')
-def delete_conversation(id:str):
-    with Session(engine) as session:
-        existing_conversation=session.get(Conversation,id)
-        if existing_conversation:
-            session.delete(existing_conversation)
-            session.commit()
-            return {
-                'status': 'success',
-                'message': f'Conversation {id} deleted successfully.'
-            }
-        else:
-            return {
-                'status':'error',
-                'message':'Conversation not found.'
-            }
-
-class MessageData(BaseModel):
-    role:str=Field(...,description='role of the message')
-    content:str=Field(...,description='content of the message')
-    timestamp:datetime=Field(...,description='timestamp of message generated')
-    conversation_id:str=Field(...,description='the conversation to which the message belongs')
-
-@app.post('/message')
-def add_message(data:MessageData):
-    with Session(engine) as session:
-        id=str(uuid4())
-        existing_conversation=session.get(Conversation,data.conversation_id)
-        if existing_conversation:
-            if len(existing_conversation.messages)==0:
-                existing_conversation.title=data.content
-            parameters={
-                'id':id,
-                'role':data.role,
-                'content':data.content,
-                'timestamp':data.timestamp,
-                'conversation':existing_conversation
-            }
-            message = Message(**parameters)
-            session.add(message)
-            session.commit()
-            session.refresh(message)
-            return {
-                'status':'success',
-                'current_message':message.model_dump(),
-                'message':f'Message {id} added successfully to the current conversation.'
-            }
-        else:
-            return {
-                'status':'error',
-                'message':'Conversation not found.'
-            }
-
-
-
-
-
+app.include_router(user)
+app.include_router(conversation)
+app.include_router(integration)
+app.include_router(message)
+app.include_router(agent)
+app.include_router(tool)
 
 if __name__=='__main__':
     uvicorn.run(app,host='0.0.0.0',port=8000)

@@ -31,3 +31,10 @@ class Message(SQLModel, table=True):
     role: str
     timestamp: datetime = Field(default_factory=datetime.now)
     conversation: Conversation = Relationship(back_populates="messages")
+
+class User(SQLModel, table=True):
+    id: str = Field(default=None, primary_key=True)
+    name: str = Field(sa_column_kwargs={"nullable": False}, min_length=3)
+    email: str = Field(sa_column_kwargs={"nullable": False}, min_length=3)
+    password: str = Field(sa_column_kwargs={"nullable": False}, min_length=3)
+    profile_image:str = Field(sa_column_kwargs={"nullable":True})
