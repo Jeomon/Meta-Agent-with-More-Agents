@@ -37,7 +37,10 @@ def add_integration(integration:Integration):
 @integration.put('/')
 def edit_integration(integration:Integration):
     with Session(engine) as session:
-        existing_integration=session.get(Integration,{'id':integration.id,'name':integration.name})
+        existing_integration = session.exec(select(Integration).where(
+            Integration.id == integration.id,
+            Integration.name == integration.name
+        )).first()
         if existing_integration:
             existing_integration.key=integration.key
             session.commit()

@@ -91,11 +91,13 @@ const store=createStore({
         }
     },
     actions:{
-        async addAgent({commit},{name,description,tools}){
-            let response=await axios.post(`agent/add`,JSON.stringify({name,description,tools}))
+        async addAgent({commit},{name,description,tool_ids}){
+            let response=await axios.post(`agent/add`,JSON.stringify({name,description,tool_ids}))
             let data= response.data
             if (data.status=='success'){ 
-                commit('createAgent',data.agent)
+                commit('addAgent',data.agent)
+                console.log(data.agent);
+                
             }
             console.log(data.message)
         },
@@ -108,7 +110,7 @@ const store=createStore({
             }
             console.log(data.message)
         },
-        async deleteAgent({commit},{id}){
+        async deleteAgent({commit},id){
             let response=await axios.delete(`agent/delete/${id}`)
             let data= response.data
             if (data.status=='success'){

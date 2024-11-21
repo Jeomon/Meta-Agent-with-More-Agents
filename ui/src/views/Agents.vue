@@ -12,7 +12,7 @@
             <span class="">No Agents Found.</span>
         </div>
         <div @click="createAgentHandler" :style="{'display':isCreate?'block':'none'}" class="bg-slate-200/60 backdrop-blur-sm w-full h-full absolute top-0 left-0">
-            <div @click.stop class="w-[60%] mx-auto bg-slate-300/60 backdrop-blur-md drop-shadow-md  mt-[5%] rounded-md px-5 pt-3 pb-1">
+            <div @click.stop class="w-[60%] mx-auto bg-slate-300/60 backdrop-blur-md drop-shadow-md  mt-[3%] rounded-md px-5 pt-3 pb-1">
                 <h1 class="text-4xl font-medium">Create Agent</h1>
                 <hr class="w-[40%]">
                 <form @submit.prevent="createAgent" class="my-4 flex flex-col gap-3">
@@ -26,10 +26,9 @@
                     </div>
                     <div class="flex flex-col gap-1">
                         <label role="tools" for="tools">Pick Tools</label>
-                        <select v-model="agent.tools" class="shadow-sm w-[30%] rounded-md p-1">
-                            <option selected disabled>Select the Tool</option>
-                            <option v-for="tool in getTools" :key="tool.id" :value="tool.name">{{tool.name}}</option>
-                            <option value="No Tool">No Tool</option>
+                        <select v-model="agent.tool_ids" class="shadow-sm w-[30%] rounded-md p-1 outline-none" multiple size="3">
+                            <option v-for="tool in getTools" :key="tool.id" :value="tool.id">{{tool.name}}</option>
+                            <option :value="null">No Tool</option>
                         </select>
                     </div>
                     <div>
@@ -63,7 +62,7 @@ export default {
                 id:null,
                 name:'',
                 description:'',
-                tools:'Select the Tool'
+                tool_ids:[]
             },
         }
     },
@@ -87,12 +86,12 @@ export default {
                     id:null,
                     name:'',
                     description:'',
-                    tools:'Select the Tool'
+                    tool_ids:[]
                 }
             }
             this.isDelete=!this.isDelete
         },
-        createAgent(e){
+        createAgent(e){            
             if(this.agent){
                 this.$store.dispatch('addAgent',{...this.agent})
                 this.isCreate=false
@@ -100,17 +99,17 @@ export default {
                     id:null,
                     name:'',
                     description:'',
-                    tools:'Select the Tool'
+                    tool_ids:[]
                 }
             }
         },
         deleteAgent(){
-            this.$store.dispatch('deleteAgent',this.agent)
+            this.$store.dispatch('deleteAgent',this.agent.id)
             this.agent={
                 id:null,
                 name:'',
                 description:'',
-                tools:'Select the Tool'
+                tool_ids:[]
             }
             this.isDelete=false
         }

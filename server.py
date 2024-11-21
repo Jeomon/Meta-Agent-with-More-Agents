@@ -42,8 +42,7 @@ async def socket(websocket:WebSocket):
     with Session(engine) as session:
         agents=session.exec(select(Agent)).all()
         tools=session.exec(select(Tool)).all()
-        session.close()
-        agents=[agent.model_dump() for agent in agents]
+    agents=[agent.model_dump() for agent in agents]
     for agent in agents:
         agent['tools']=[eval(tool.function_name) for tool_name in agent['tools'].split(',') for tool in tools if tool.name==tool_name]
     agent=MetaAgent(agents=agents,llm=llm,verbose=True)

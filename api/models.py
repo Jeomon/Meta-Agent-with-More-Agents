@@ -6,13 +6,15 @@ class Agent(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)
     name: str = Field(sa_column_kwargs={"nullable": False}, min_length=3, max_length=50)
     description: str = Field(sa_column_kwargs={"nullable": False}, min_length=10, max_length=200)
-    tools: str = Field(sa_column_kwargs={"nullable": False}, max_items=10)
+    tools: List["Tool"] = Relationship(back_populates="agent",sa_relationship_kwargs={"cascade": "save-update, merge"})
 
 class Tool(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)
     name: str = Field(sa_column_kwargs={"nullable": False}, min_length=3, max_length=50)
     function_name: str = Field(sa_column_kwargs={"nullable": False}, min_length=3, max_length=50)
     description: str = Field(sa_column_kwargs={"nullable": False}, min_length=10, max_length=200)
+    agent_id:str = Field(foreign_key="agent.id",nullable=True)
+    agent: Agent = Relationship(back_populates="tools")
 
 class Integration(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)
@@ -26,10 +28,10 @@ class Conversation(SQLModel, table=True):
 
 class Message(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)
-    session_id: str = Field(foreign_key="conversation.id")
-    content: str
-    role: str
+    role: str=Field(...,description='The role of the message')
+    content: str=Field(...,description='The content of the message')
     timestamp: datetime = Field(default_factory=datetime.now)
+    session_id: str = Field(foreign_key="conversation.id")
     conversation: Conversation = Relationship(back_populates="messages")
 
 class User(SQLModel, table=True):
