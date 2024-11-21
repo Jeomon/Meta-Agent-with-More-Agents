@@ -61,8 +61,8 @@ class ImageMessage(BaseMessage):
         return base64.b64encode(image_bytes).decode('utf-8')
 
 class ToolMessage(BaseMessage):
-    def __init__(self,content:str,tool_call:str,tool_args:dict):
-        self.role='assistant'
-        self.content=content
-        self.tool_call=tool_call
-        self.tool_args=tool_args
+    def __init__(self,id:str,name:str,args:dict):
+        self.id=id
+        self.role='tool'
+        self.name=name
+        self.args=args

@@ -8,7 +8,7 @@
         <Conversation @click="()=>getConversation(conversation.id)" v-for="conversation in getConversations" :key="conversation.id" :conversation="conversation"/>
     </div>
     <div v-else class="flex flex-row items-center justify-center h-[75%]">
-        <span class="text-lg">No conversations found...</span>
+        <span class="text-lg italic">No conversations found...</span>
     </div>
 </template>
 <script>

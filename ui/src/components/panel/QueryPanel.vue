@@ -70,12 +70,13 @@ export default {
     async submitQuery() {
       let query = this.query.trim();
       if (query) {
+        let conversation=this.getConversation
         // Only send the message if the socket is open
         if (this.socket.readyState === WebSocket.OPEN) {
-          if (!this.getConversation.id){
-            await this.$store.dispatch('addConversation',query)
+          if (!conversation.id){
+            conversation =await this.$store.dispatch('addConversation',query)
           }
-          await this.$store.dispatch('addMessage',{role: 'user', content: query, timestamp: Date.now(), conversation_id:this.getConversation.id});
+          await this.$store.dispatch('addMessage',{role: 'user', content: query, timestamp: Date.now(), conversation_id:conversation.id});
           await this.socket.send(query);
           this.query = ''; // Clear the textarea after sending
         } else {

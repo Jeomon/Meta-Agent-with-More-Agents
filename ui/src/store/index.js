@@ -205,12 +205,14 @@ const store=createStore({
                 commit('addConversation',conversation)
             }
             console.log(data.message);
+            return conversation
         },
         async deleteConversation({commit},id){
             let response=await axios.delete(`conversation/${id}`)
             let data=response.data
             if(data.status=='success'){
                 commit('deleteConversation',id)
+                commit('getMessages',[])
             }
             console.log(data.message);
         },

@@ -1,6 +1,6 @@
-from src.message import AIMessage,BaseMessage,SystemMessage,ImageMessage,HumanMessage
-from requests import RequestException,HTTPError,ConnectionError
+from src.message import AIMessage,BaseMessage,SystemMessage,ImageMessage,HumanMessage,ToolMessage
 from tenacity import retry,stop_after_attempt,retry_if_exception_type
+from requests import RequestException,HTTPError,ConnectionError
 from src.inference import BaseInference
 from httpx import Client,AsyncClient
 from typing import Generator
@@ -50,18 +50,31 @@ class ChatGroq(BaseInference):
             payload["response_format"]={
                 "type": "json_object"
             }
+        if self.tools:
+            payload["tools"]=[{
+                'type':'function',
+                'function':{
+                    'name':tool.name,
+                    'description':tool.description,
+                    'parameters':tool.schema
+                }
+            } for tool in self.tools]
         try:
             with Client() as client:
                 response=client.post(url=url,json=payload,headers=headers)
             json_object=response.json()
             # print(json_object)
             if json_object.get('error'):
-                raise Exception(json_object['error']['message'])
-            if json:
-                content=loads(json_object['choices'][0]['message']['content'])
+                raise HTTPError(json_object['error']['message'])
             else:
-                content=json_object['choices'][0]['message']['content']
-            return AIMessage(content)
+                message=json_object['choices'][0]['message']
+                if json:
+                    return AIMessage(loads(message.get('content')))
+                if message.get('content'):
+                    return AIMessage(message.get('content'))
+                else:
+                    tool_call=message.get('tool_calls')[0]
+                    return ToolMessage(id=tool_call['id'],name=tool_call['function']['name'],args=tool_call['function']['arguments']) 
         except HTTPError as err:
             err_object=loads(err.response.text)
             print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')
