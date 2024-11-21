@@ -1,9 +1,10 @@
 from tenacity import retry,stop_after_attempt,retry_if_exception_type
 from requests import post,get,RequestException,HTTPError
-from src.message import AIMessage,BaseMessage
+from src.message import AIMessage,BaseMessage,ToolMessage
 from src.inference import BaseInference
 from typing import Generator
 from json import loads
+from uuid import uuid4
 
 class ChatOllama(BaseInference):
     @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
@@ -20,15 +21,27 @@ class ChatOllama(BaseInference):
             "format":'json' if json else '',
             "stream":False
         }
+        if self.tools:
+            payload["tools"]=[{
+                'type':'function',
+                'function':{
+                    'name':tool.name,
+                    'description':tool.description,
+                    'parameters':tool.schema
+                }
+            } for tool in self.tools]
         try:
             response=post(url=url,json=payload,headers=headers)
             response.raise_for_status()
-            json_obj=response.json()
+            json_object=response.json()
+            message=json_object['choices'][0]['message']
             if json:
-                content=loads(json_obj['message']['content'])
+                return AIMessage(loads(message.get('content')))
+            if message.get('content'):
+                return AIMessage(message.get('content'))
             else:
-                content=json_obj['message']['content']
-            return AIMessage(content)
+                tool_call=message.get('tool_calls')[0]['function']
+                return ToolMessage(id=str(uuid4()),name=tool_call['name'],args=tool_call['arguments']) 
         except HTTPError as err:
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
     

@@ -1,9 +1,10 @@
+from src.message import AIMessage,BaseMessage,HumanMessage,ImageMessage,ToolMessage
 from requests import post,get,RequestException,HTTPError,ConnectionError
 from tenacity import retry,stop_after_attempt,retry_if_exception_type
-from src.message import AIMessage,BaseMessage,HumanMessage,ImageMessage
 from src.inference import BaseInference
 from requests import post,get
 from json import loads
+from uuid import uuid4
 
 class ChatGemini(BaseInference):
     @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
@@ -57,6 +58,18 @@ class ChatGemini(BaseInference):
                 'responseMimeType':'application/json' if json else 'text/plain'
             }
         }
+        if self.tools:
+            payload['tools']=[
+                {
+                    'function_declarations':[
+                        {
+                            'name': tool.name,
+                            'description': tool.description,
+                            'parameters': tool.schema
+                        }
+                    for tool in self.tools]
+                }
+            ]
         if system_instruct:
             payload['system_instruction']=system_instruct
         try:
@@ -65,11 +78,16 @@ class ChatGemini(BaseInference):
             # print(json_obj)
             if json_obj.get('error'):
                 raise Exception(json_obj['error']['message'])
-            if json:
-                content=loads(json_obj['candidates'][0]['content']['parts'][0]['text'])
+           
             else:
-                content=json_obj['candidates'][0]['content']['parts'][0]['text']
-            return AIMessage(content)
+                message=json_obj['candidates'][0]['content']['parts'][0]
+                if json:
+                    return AIMessage(loads(message['text']))
+                if message.get('text'):
+                    return AIMessage(message['text'])
+                else:
+                    tool_call=message['functionCall']
+                    return ToolMessage(id=str(uuid4()),name=tool_call['name'],args=tool_call['args'])
         except HTTPError as err:
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
         except ConnectionError as err:

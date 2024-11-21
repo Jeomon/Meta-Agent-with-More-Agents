@@ -8,6 +8,7 @@ from typing import Literal
 from json import loads
 import requests
 import base64
+from uuid import uuid4
 
 class ChatGroq(BaseInference):
     @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
@@ -73,8 +74,8 @@ class ChatGroq(BaseInference):
                 if message.get('content'):
                     return AIMessage(message.get('content'))
                 else:
-                    tool_call=message.get('tool_calls')[0]
-                    return ToolMessage(id=tool_call['id'],name=tool_call['function']['name'],args=tool_call['function']['arguments']) 
+                    tool_call=message.get('tool_calls')[0]['function']
+                    return ToolMessage(id=str(uuid4()),name=tool_call['name'],args=tool_call['arguments']) 
         except HTTPError as err:
             err_object=loads(err.response.text)
             print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')

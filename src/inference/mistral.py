@@ -1,13 +1,12 @@
-from src.message import AIMessage,BaseMessage,SystemMessage,ImageMessage,HumanMessage
+from src.message import AIMessage,BaseMessage,SystemMessage,ImageMessage,HumanMessage,ToolMessage
 from requests import RequestException,HTTPError,ConnectionError
 from tenacity import retry,stop_after_attempt,retry_if_exception_type
 from src.inference import BaseInference
 from httpx import Client,AsyncClient
 from typing import Generator
-from typing import Literal
 from json import loads
+from uuid import uuid4
 import requests
-import base64
 
 class ChatMistral(BaseInference):
     @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
@@ -47,6 +46,15 @@ class ChatMistral(BaseInference):
             },
             "stream":False,
         }
+        if self.tools:
+            payload["tools"]=[{
+                'type':'function',
+                'function':{
+                    'name':tool.name,
+                    'description':tool.description,
+                    'parameters':tool.schema
+                }
+            } for tool in self.tools]
         try:
             with Client() as client:
                 response=client.post(url=url,json=payload,headers=headers,timeout=None)
@@ -54,11 +62,14 @@ class ChatMistral(BaseInference):
             # print(json_object)
             if json_object.get('error'):
                 raise Exception(json_object['error']['message'])
+            message=json_object['choices'][0]['message']
             if json:
-                content=loads(json_object['choices'][0]['message']['content'])
+                return AIMessage(loads(message.get('content')))
+            if message.get('content'):
+                return AIMessage(message.get('content'))
             else:
-                content=json_object['choices'][0]['message']['content']
-            return AIMessage(content)
+                tool_call=message.get('tool_calls')[0]['function']
+                return ToolMessage(id=str(uuid4()),name=tool_call['name'],args=tool_call['arguments']) 
         except HTTPError as err:
             err_object=loads(err.response.text)
             print(f'\nError: {err_object["error"]["message"]}\nStatus Code: {err.response.status_code}')
