@@ -1,9 +1,9 @@
 <template>
   <form @submit.prevent="submitQuery" class="text-lg max-h-32 absolute bottom-[22.5%] z-10 flex flex-row items-end gap-x-2">
-    <button type="button" @click="showOptions" class="relative">
-      <img class="w-4 h-4 p-4 box-content rounded-full hover:bg-slate-200/90 backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/3-dot.svg" />
+    <button type="button" @click="showOptions" :class="['relative',isoptions?'bg-slate-200/90':'hover:bg-slate-200/90','rounded-full']">
+      <img class="w-4 h-4 p-4 box-content rounded-full backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/3-dot.svg" />
     </button>
-    <div :style="{'display':isoptions?'block':'none'}" class="absolute bottom-[3.3rem] -left-7 bg-slate-200 p-2 rounded-lg shadow-md">
+    <div :style="{'display':isoptions?'block':'none'}" :class="['absolute','bottom-[3.4rem]','-left-7','bg-slate-100','p-2','rounded-lg','shadow-md']">
       <div class="flex flex-col gap-1">
         <span>Document</span>
         <span>Audio</span>
@@ -12,8 +12,8 @@
       </div>
     </div>
     <textarea ref="textarea" v-model.trim="query" rows="1" @input="heightAdjust" class="backdrop-blur-sm bg-slate-100/90 focus:bg-slate-200/90 w-[50vw] drop-shadow-md py-3 px-3.5 outline-none resize-none rounded-3xl" placeholder="Message MAMA"></textarea>
-    <button type="submit">
-      <img class="w-10 h-10 p-1 box-content rounded-full hover:bg-slate-200/90 backdrop-blur-sm bg-slate-100/90 drop-shadow-md" src="../../assets/triangle.svg" />
+    <button type="submit" class="backdrop-blur-sm drop-shadow-md rounded-full hover:bg-slate-200/90 bg-slate-100/90 focus:bg-slate-200/90">
+      <img class="w-10 h-10 p-1 box-content" src="../../assets/triangle.svg" />
     </button>
   </form>
 </template>

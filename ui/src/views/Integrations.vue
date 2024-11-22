@@ -1,7 +1,10 @@
 <template>
     <div class="w-full h-full p-4 relative">
         <div class="flex justify-between items-center">
-            <h1 class="text-4xl m-2">Integrations</h1>
+            <div class="flex flex-row items-center">
+                <img class="w-9 h-9" src="../assets/integration.svg"/>
+                <h1 class="text-4xl m-2">Integrations</h1>
+            </div>
             <span @click="addIntegrationHandler" class="cursor-pointer p-2 bg-slate-300 rounded-md text-lg hover:bg-slate-400">Add Integration</span>
         </div>
         <hr>
