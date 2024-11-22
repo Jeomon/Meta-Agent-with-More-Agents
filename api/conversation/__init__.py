@@ -54,6 +54,21 @@ def add_conversation(data:ConversationData):
         'message':'Conversation created successfully.'
     }
 
+@conversation.patch('/{id}')
+def edit_converation(id:str,data:ConversationData):
+    with Session(engine) as session:
+        existing_conversation=session.get(Conversation,id)
+        if existing_conversation:
+            existing_conversation.title=data.title
+            session.commit()
+            session.refresh(existing_conversation)
+            return {
+                'status':'success',
+                'conversation':existing_conversation.model_dump(),
+                'message':'Conversation edited successfully.'
+            }
+
+
 @conversation.delete('/{id}')
 def delete_conversation(id:str):
     with Session(engine) as session:

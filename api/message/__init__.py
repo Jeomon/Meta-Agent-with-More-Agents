@@ -12,7 +12,6 @@ message=APIRouter(prefix='/message')
 class MessageData(BaseModel):
     role:str=Field(...,description='role of the message')
     content:str=Field(...,description='content of the message')
-    timestamp:datetime=Field(...,description='timestamp of message generated')
     conversation_id:str=Field(...,description='the conversation to which the message belongs')
 
 @message.post('/')
@@ -21,13 +20,10 @@ def add_message(data:MessageData):
         id=str(uuid4())
         existing_conversation=session.get(Conversation,data.conversation_id)
         if existing_conversation:
-            if len(existing_conversation.messages)==0:
-                existing_conversation.title=data.content
             parameters={
                 'id':id,
                 'role':data.role,
                 'content':data.content,
-                'timestamp':data.timestamp,
                 'conversation':existing_conversation
             }
             message = Message(**parameters)

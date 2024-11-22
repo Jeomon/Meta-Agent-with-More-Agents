@@ -12,17 +12,18 @@ from termcolor import colored
 from typing import Generator
 
 class MetaAgent(BaseAgent):
-    def __init__(self,llm:BaseInference=None,agents:list[dict]=[],tools:list=[],max_iteration=10,json=False,verbose=False):
+    def __init__(self,llm:BaseInference=None,agents:list[dict]=[],tools:list=[],max_iteration=10,verbose=False):
         self.name='Meta Agent'
+        self.description='This agent orchestrates the problem-solving process by breaking down queries into sub-tasks and assigning each to the most suitable agent.'
         self.llm=llm
         self.max_iteration=max_iteration
         self.iteration=0
         self.agents=[f'Name: {agent["name"]}\nDescription: {agent["description"]}\nTools: {','.join([tool.name for tool in agent["tools"]])}' for agent in agents]
         self.tools=tools or [tool for agent in agents for tool in agent['tools']]
         self.tool_names=[tool.name for tool in tools]
+        self.system_prompt=read_markdown_file('./src/agent/meta/prompt.md')
         self.graph=self.create_graph()
         self.verbose=verbose
-        self.system_prompt=read_markdown_file('./src/agent/meta/prompt.md')
 
     def meta_expert(self,state:AgentState):
         llm_response=self.llm.invoke(state['messages'])

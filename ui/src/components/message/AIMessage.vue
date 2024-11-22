@@ -18,7 +18,7 @@
 import { marked } from 'marked';
 export default {
     props:{
-        content: Object,
+        content: String,
     },
     computed:{
         HTMLContent(){

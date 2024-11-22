@@ -79,12 +79,17 @@ const store=createStore({
         getConversations(state,conversations){
             state.conversations=conversations
         },
+        getConversation(state,{id,title}){
+            state.conversation={id,title}
+        },
         addConversation(state,conversation){
             state.conversations.push(conversation)
         },
-        getConversation(state,{id,title,messages}){
-            state.conversation={id,title}
-            state.messages=messages
+        editConversation(state,{id,title}){
+            let conversation=state.conversations.find(conversation=>conversation.id==id)
+            state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
+            conversation.title=title
+            state.conversations.push(conversation)
         },
         deleteConversation(state,id){
             state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
@@ -192,8 +197,9 @@ const store=createStore({
             let response=await axios.get(`conversation/${conversation_id}`)
             let data=response.data
             if(data.status=='success'){
-                let conversation=data.conversation
-                commit('getConversation',conversation)
+                let {id,title,messages}=data.conversation
+                commit('getConversation',{id,title})
+                commit('getMessages',messages)
             }
             console.log(data.message);
         },
@@ -202,12 +208,23 @@ const store=createStore({
                 'title':title
             }))
             let data=response.data
+            let conversation=null
             if(data.status=='success'){
-                let conversation=data.conversation
+                conversation=data.conversation
                 commit('addConversation',conversation)
+                commit('getMessages',[])
             }
             console.log(data.message);
             return conversation
+        },
+        async editConversation({commit},{id,title}){
+            let response=await axios.patch(`conversation/${id}`,JSON.stringify({'title':title}))
+            let data=response.data
+            if(data.status=='success'){
+                let conversation=data.conversation
+                commit('editConversation',conversation)
+            }
+            console.log(data.message);
         },
         async deleteConversation({commit},id){
             let response=await axios.delete(`conversation/${id}`)
