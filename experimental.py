@@ -3,15 +3,14 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import json
 import os
-load_dotenv()
 
 class Weather(BaseModel):
-    location:str=Field(...,description="The location to get the weather data for.",example=['London'])
+    location:str=Field(...,description="The location to get the weather for.",example=['London'])
 
 @tool("Weather Tool",args_schema=Weather)
 def weather_tool(location:str):
     '''
-    Retrieves the current weather data for the given location using the OpenWeatherMap API and returns the formatted results.
+    Gets the current weather data for the given location using OpenWeatherMap API and returns the formatted results.
     '''
     import os
     import requests
@@ -21,23 +20,21 @@ def weather_tool(location:str):
 
     api_key=os.environ.get('OPENWEATHERMAP_API_KEY')
     try:
-        base_url="http://api.openweathermap.org/data/2.5/weather"
-        params={
-            'q':location,
-            'appid':api_key,
-            'units':'metric'
-        }
-        response=requests.get(base_url,params=params)
-        weather_data=response.json()
-        if weather_data['cod']!='404':
-            main=weather_data['main']
-            temperature=main['temp']
-            humidity=main['humidity']
-            pressure=main['pressure']
-            weather_report="Weather in {}\nTemperature: {}°C\nHumidity: {}%\nPressure: {} hPa".format(location,temperature,humidity,pressure)
-            return weather_report
+        response=requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric')
+        data=response.json()
+        if data['cod']!='404':
+            main=data['main']
+            weather=data['weather']
+            weather_data={
+                'location':location,
+                'temperature':main['temp'],
+                'humidity':main['humidity'],
+                'weather_description':weather[0]['description'],
+                'weather_icon':weather[0]['icon']
+            }
+            return json.dumps(weather_data,indent=4)
         else:
-            return 'City Not Found'
+            return f'Error: Location not found. Please try again with a different location.'
     except Exception as err:
-        return f"Error: {err}"
+        return f'Error: {err}'
 

@@ -8,9 +8,14 @@
 
 ![Image of the Workflow](diagram.svg)
 
+## UI
+
+![UI](ui.png)
+
 ## Demo
 
 https://github.com/user-attachments/assets/845eceb5-77b2-4019-935a-67b3549e56b2
+
 
 Note: Sometimes it will fail and demo might seem stuck at some time. It's actually because I limited the rate of API calls to prevent hitting the rate limit.
 
