@@ -3,6 +3,7 @@ import { createStore } from "vuex";
 
 const store=createStore({
     state: {
+        user:{},
         conversation:{},
         messages: [],
         conversations:[],
@@ -28,6 +29,9 @@ const store=createStore({
         },
         getIntegrations(state){
             return state.integrations
+        },
+        getCurrentUser(state){
+            return state.user
         }
     },
     mutations:{
@@ -93,6 +97,9 @@ const store=createStore({
         },
         deleteConversation(state,id){
             state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
+        },
+        signinUser(state,current_user){
+            state.user=current_user
         }
     },
     actions:{
@@ -244,6 +251,15 @@ const store=createStore({
             }
             console.log(data.message);
         },
+        async signinUser({commit},{username,password}){
+            let response=await axios.post(`user/signin`,JSON.stringify({username,password}))
+            let data=response.data
+            if(data.status=='success'){
+                let current_user=data.current_user
+                commit('signinUser',current_user)
+            }
+            console.log(data.message);      
+        }
         
     }
 })
