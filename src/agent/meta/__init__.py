@@ -143,4 +143,4 @@ class MetaAgent(BaseAgent):
             'current_agent':self.name,
             'output':'',
         }
-        return self.graph.stream(state,stream_mode='values',output_keys=['output','current_agent'])
+        return self.graph.stream(state,stream_mode='values',output_keys=['output'])

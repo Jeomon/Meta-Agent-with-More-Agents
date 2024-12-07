@@ -2,13 +2,14 @@ from tenacity import retry,stop_after_attempt,retry_if_exception_type
 from requests import post,get,RequestException,HTTPError
 from src.message import AIMessage,BaseMessage,ToolMessage
 from src.inference import BaseInference
+from pydantic import BaseModel
 from typing import Generator
 from json import loads
 from uuid import uuid4
 
 class ChatOllama(BaseInference):
     @retry(stop=stop_after_attempt(3),retry=retry_if_exception_type(RequestException))
-    def invoke(self,messages: list[BaseMessage],json=False)->AIMessage:
+    def invoke(self,messages: list[BaseMessage],json=False,structured_output:BaseModel=None)->AIMessage:
         headers=self.headers
         temperature=self.temperature
         url=self.base_url or "http://localhost:11434/api/chat"
@@ -18,9 +19,12 @@ class ChatOllama(BaseInference):
             "options":{
                 "temperature": temperature,
             },
-            "format":'json' if json else '',
             "stream":False
         }
+        if json:
+            payload['format']='json'
+        if structured_output:
+            payload['format']=structured_output.model_json_schema()
         if self.tools:
             payload["tools"]=[{
                 'type':'function',
@@ -39,6 +43,8 @@ class ChatOllama(BaseInference):
                 return AIMessage(loads(message.get('content')))
             if message.get('content'):
                 return AIMessage(message.get('content'))
+            elif structured_output:
+                return AIMessage(structured_output.model_validate_json(message.get('content')))
             else:
                 tool_call=message.get('tool_calls')[0]['function']
                 return ToolMessage(id=str(uuid4()),name=tool_call['name'],args=tool_call['arguments']) 
