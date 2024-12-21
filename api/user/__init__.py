@@ -10,9 +10,9 @@ from typing import Annotated
 from uuid import UUID
 import os
 
-user=APIRouter(prefix='api/user',tags=['User'])
+user=APIRouter(prefix='/api/user',tags=['User'])
 password_context=CryptContext(schemes=['bcrypt'],deprecated='auto')
-oauth2_scheme=OAuth2PasswordBearer(tokenUrl='user/signin')
+oauth2_scheme=OAuth2PasswordBearer(tokenUrl='api/user/signin')
 secret_key=os.getenv('SECRET_KEY')
 
 class TokenData(BaseModel):

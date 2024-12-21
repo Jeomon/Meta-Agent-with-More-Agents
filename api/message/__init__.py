@@ -1,12 +1,12 @@
 from fastapi import APIRouter,status,Depends
 from pydantic import BaseModel,Field
-from api.models import Message,Conversation,User
 from api.init_database import engine
+from api.models import Conversation,User,Message
 from api.user import get_current_user
 from sqlmodel import Session,select
 
 
-message=APIRouter(prefix='api/message',tags=['Message'])
+message=APIRouter(prefix='/api/message',tags=['Message'])
 
 class MessageData(BaseModel):
     role:str=Field(...,description='role of the message')

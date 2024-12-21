@@ -5,7 +5,7 @@ from src.tool.generate import generate
 from pydantic import BaseModel,Field
 from sqlmodel import Session,select
 from api.init_database import engine
-from api.models import Tool,User
+from api.models import User,Tool
 from api.user import get_current_user
 from dotenv import load_dotenv
 from os import environ
@@ -15,7 +15,7 @@ load_dotenv()
 api_key=environ.get('GROQ_API_KEY')
 llm=ChatGroq(model='llama-3.1-70b-versatile',api_key=api_key,temperature=0)
 
-tool=APIRouter(prefix='api/tool',tags=['Tool'])
+tool=APIRouter(prefix='/api/tool',tags=['Tool'])
 
 @tool.get('/all')
 def get_tools(current_user:dict=Depends(get_current_user)):
