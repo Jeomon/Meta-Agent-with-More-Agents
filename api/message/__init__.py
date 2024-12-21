@@ -1,13 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,status,Depends
 from pydantic import BaseModel,Field
-from api.models import Message,Conversation
+from api.models import Message,Conversation,User
 from api.init_database import engine
-from sqlmodel import Session
-from datetime import datetime
-from uuid import uuid4
+from api.user import get_current_user
+from sqlmodel import Session,select
 
 
-message=APIRouter(prefix='/message')
+message=APIRouter(prefix='/message',tags=['Message'])
 
 class MessageData(BaseModel):
     role:str=Field(...,description='role of the message')
@@ -15,28 +14,31 @@ class MessageData(BaseModel):
     conversation_id:str=Field(...,description='the conversation to which the message belongs')
 
 @message.post('/')
-def add_message(data:MessageData):
+def add_message(data:MessageData,current_user:dict=Depends(get_current_user)):
+    if current_user is None:
+        return {
+            'status':'error',
+            'message':'You need to be authenticated to access this route.'
+        },status.HTTP_401_UNAUTHORIZED
+    current_user=User(**current_user)
     with Session(engine) as session:
-        id=str(uuid4())
-        existing_conversation=session.get(Conversation,data.conversation_id)
+        existing_conversation=session.exec(select(Conversation).where(Conversation.user==current_user,Conversation.id==data.conversation_id)).first()
         if existing_conversation:
-            parameters={
-                'id':id,
+            message = Message(**{
                 'role':data.role,
                 'content':data.content,
                 'conversation':existing_conversation
-            }
-            message = Message(**parameters)
+            })
             session.add(message)
             session.commit()
             session.refresh(message)
             return {
                 'status':'success',
                 'current_message':message.model_dump(),
-                'message':f'Message {id} added successfully to the current conversation.'
-            }
+                'message':f'Message {message.id} added successfully to the current conversation.'
+            },status.HTTP_201_CREATED
         else:
             return {
                 'status':'error',
                 'message':'Conversation not found.'
-            }
+            },status.HTTP_404_NOT_FOUND

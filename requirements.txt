@@ -6,6 +6,6 @@ httpx
 python-dotenv
 tenacity
 sqlmodel
-fastapi
+fastapi[standard]
 uvicorn[standard]
 Ipython

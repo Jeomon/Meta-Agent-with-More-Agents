@@ -22,11 +22,16 @@ load_dotenv()
 api_key=environ.get('GROQ_API_KEY')
 
 @asynccontextmanager
-async def lifespan(_):
+async def lifespan(app:FastAPI):
+    print('Server starting...')
     SQLModel.metadata.create_all(engine)
     yield
+    print('Server stopping...')
 
-app=FastAPI(lifespan=lifespan)
+app=FastAPI(title='Meta Agent with More Agents',version=1.0,
+description="The Meta Agent coordinates the process, leveraging a ReAct Agent for tool-based tasks and a Chain of Thought Agent for reasoning-based tasks. The system's flexibility.",
+lifespan=lifespan)
+
 llm=ChatGroq(model='llama-3.1-70b-versatile',api_key=api_key,temperature=0)
 
 app.add_middleware(
@@ -40,7 +45,12 @@ app.add_middleware(
 @app.websocket("/ws")
 async def socket(websocket:WebSocket):
     with Session(engine) as session:
-        agents=[{'name':agent.name,'description':agent.description,'tools':[eval(tool.function_name) for tool in agent.tools]} for agent in session.exec(select(Agent)).all()]
+        agents=[{
+            'name':agent.name,
+            'description':agent.description,
+            'tools':[eval(tool.function_name)
+                for tool in agent.tools]}
+                for agent in session.exec(select(Agent)).all()]
     agent=MetaAgent(agents=agents,llm=llm,verbose=True)
     await websocket.accept()
     while True:
