@@ -15,7 +15,7 @@ load_dotenv()
 api_key=environ.get('GROQ_API_KEY')
 llm=ChatGroq(model='llama-3.1-70b-versatile',api_key=api_key,temperature=0)
 
-tool=APIRouter(prefix='/tool',tags=['Tool'])
+tool=APIRouter(prefix='api/tool',tags=['Tool'])
 
 @tool.get('/all')
 def get_tools(current_user:dict=Depends(get_current_user)):

@@ -5,7 +5,7 @@ from api.models import Agent,Tool,User
 from pydantic import BaseModel,Field
 from api.user import get_current_user
 
-agent=APIRouter(prefix='/agent',tags=['Agent'])
+agent=APIRouter(prefix='api/agent',tags=['Agent'])
 
 @agent.get('/all')
 def get_agents(current_user:dict=Depends(get_current_user)):

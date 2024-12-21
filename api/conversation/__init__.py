@@ -5,7 +5,7 @@ from api.init_database import engine
 from api.user import get_current_user
 from api.models import Conversation,Message,User
 
-conversation=APIRouter(prefix='/conversation',tags=['Conversation'])
+conversation=APIRouter(prefix='api/conversation',tags=['Conversation'])
 
 @conversation.get('/')
 def get_conversations(current_user:dict=Depends(get_current_user)):

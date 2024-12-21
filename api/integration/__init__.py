@@ -4,7 +4,7 @@ from api.init_database import engine
 from api.models import Integration,User
 from api.user import get_current_user
 
-integration=APIRouter(prefix='/integration',tags=['Integration'])
+integration=APIRouter(prefix='api/integration',tags=['Integration'])
 
 @integration.get('/')
 def get_integrations(current_user:dict=Depends(get_current_user)):
