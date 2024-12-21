@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import store from '@/store'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,7 +7,11 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      redirect: '/chat',
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: ()=>import('../views/Test.vue')
     },
     {
       path:'/signup',
@@ -14,14 +19,36 @@ const router = createRouter({
       component: ()=>import('../views/SignUp.vue')
     },
     {
-      path:'/signin',
-      name:'signin',
-      component: ()=>import('../views/SignIn.vue')
+      path: '/signin',
+      name: 'signin',
+      component: ()=>import('../views/SignIn.vue'),
+      beforeEnter: (to, from, next) => {
+        console.log(to,from);
+        if (store.state.isAuthenticated) {
+          next({ name: 'home' });
+        } else {
+          next();
+        }
+      }
+    },
+    {
+      path: '/signout',
+      name: 'signout',
+      beforeEnter: (to, from, next) => {
+        if (store.state.isAuthenticated) {
+          sessionStorage.removeItem('auth_token');
+          next({ name: 'home' });
+        } else {
+          next();
+        }
+      },
+      meta: { requiresAuth: true }
     },
     {
       path: '/chat',
       name: 'chat',
-      component: ()=>import('../views/Chat.vue')
+      component: ()=>import('../views/Chat.vue'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/settings/',
@@ -64,9 +91,23 @@ const router = createRouter({
             content:()=>import('../views/About.vue')
           }
         }
-      ]
+      ],
+      meta: { requiresAuth: true },
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  // Check if the route requires authentication
+  const isAuthenticated = store.state.isAuthenticated;
+  if (to.matched.some((record) => record.meta.requiresAuth)&&!isAuthenticated) {
+    const path=encodeURIComponent(window.location.pathname)
+    // Redirect to login if not authenticated
+    next({ name: 'signin',query:{redirect:path} });
+  } else {
+    // Proceed to the route if no auth is required
+    next();
+  }
+});
 
 export default router

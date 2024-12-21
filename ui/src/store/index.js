@@ -1,15 +1,16 @@
 import axios from "axios";
 import { createStore } from "vuex";
+import router from "@/router";
 
 const store=createStore({
     state: {
-        user:{},
         conversation:{},
         messages: [],
         conversations:[],
         agents:[],
         tools:[],
-        integrations:[]
+        integrations:[],
+        isAuthenticated:false
     },
     getters:{
         getConversation(state){
@@ -30,8 +31,8 @@ const store=createStore({
         getIntegrations(state){
             return state.integrations
         },
-        getCurrentUser(state){
-            return state.user
+        isAuthenticated(state){
+            return state.isAuthenticated
         }
     },
     mutations:{
@@ -98,14 +99,16 @@ const store=createStore({
         deleteConversation(state,id){
             state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
         },
-        signinUser(state,current_user){
-            state.user=current_user
-        }
+        isAuthenticated(state){
+            if(sessionStorage.getItem('auth_token')){
+                state.isAuthenticated=true
+            }
+        },
     },
     actions:{
         async addAgent({commit},{name,description,tool_ids}){
-            let response=await axios.post(`agent/add`,JSON.stringify({name,description,tool_ids}))
-            let data= response.data
+            let response=await axios.post(`api/agent/add`,JSON.stringify({name,description,tool_ids}))
+            let [data,status]= response.data
             if (data.status=='success'){ 
                 commit('addAgent',data.agent)
                 console.log(data.agent);
@@ -114,8 +117,8 @@ const store=createStore({
             console.log(data.message)
         },
         async getAgents({commit}){
-            let response=await axios.get(`agent/all`)
-            let data= response.data
+            let response=await axios.get(`api/agent/all`)
+            let [data,status]= response.data
             if (data.status=='success'){ 
                 let agents=data.agents
                 commit('getAgents',agents)
@@ -123,16 +126,16 @@ const store=createStore({
             console.log(data.message)
         },
         async deleteAgent({commit},id){
-            let response=await axios.delete(`agent/delete/${id}`)
-            let data= response.data
+            let response=await axios.delete(`api/agent/delete/${id}`)
+            let [data,status]= response.data
             if (data.status=='success'){
                 commit('deleteAgent',id)
             }
             console.log(data.message)
         },
         async getTools({commit}){
-            let response=await axios.get(`tool/all`)
-            let data= response.data
+            let response=await axios.get(`api/tool/all`)
+            let [data,status]= response.data
             if (data.status=='success'){
                 let tools=data.tools
                 commit('getTools',tools)
@@ -140,16 +143,16 @@ const store=createStore({
             console.log(data.message)
         },
         async deleteTool({commit},{id}){
-            let response=await axios.delete(`tool/delete/${id}`)
-            let data= response.data
+            let response=await axios.delete(`api/tool/delete/${id}`)
+            let [data,status]= response.data
             if (data.status=='success'){
                 commit('deleteTool',id)
             }
             console.log(data.message)
         },
         async addTool({commit},definition){
-            let response=await axios.post(`tool/add`,JSON.stringify(definition))
-            let data= response.data
+            let response=await axios.post(`api/tool/add`,JSON.stringify(definition))
+            let [data,status]= response.data
             if (data.status=='success'){ 
                 let tool=data.tool
                 commit('addTool',tool)
@@ -157,8 +160,8 @@ const store=createStore({
             console.log(data.message)
         },
         async getIntegrations({commit}){
-            let response=await axios.get(`integration`)
-            let data= response.data
+            let response=await axios.get(`api/integration`)
+            let [data,status]= response.data
             if (data.status=='success'){ 
                 let integrations=data.integrations
                 commit('getIntegrations',integrations)
@@ -166,8 +169,8 @@ const store=createStore({
             console.log(data.message)
         },
         async addIntegration({commit},integration){
-            let response=await axios.post(`integration`,JSON.stringify(integration))
-            let data=response.data
+            let response=await axios.post(`api/integration`,JSON.stringify(integration))
+            let [data,status]=response.data
             if (data.status=='success'){ 
                 let integration=data.integration
                 commit('addIntegration',integration)
@@ -175,8 +178,8 @@ const store=createStore({
             console.log(data.message)
         },
         async editIntegration({commit},integration){
-            let response=await axios.put(`integration`,integration)
-            let data=response.data
+            let response=await axios.put(`api/integration`,integration)
+            let [data,status]=response.data
             if (data.status=='success'){
                 let integration=data.integration
                 commit('editIntegration',integration)
@@ -184,16 +187,16 @@ const store=createStore({
             console.log(data.message);
         },
         async deleteIntegration({commit},{id}){
-            let response=await axios.delete(`integration/${id}`)
-            let data= response.data
+            let response=await axios.delete(`api/integration/${id}`)
+            let [data,status]= response.data
             if (data.status=='success'){
                 commit('deleteIntegration',id)
             }
             console.log(data.message);
         },
         async getConversations({commit}){
-            let response=await axios.get(`conversation`)
-            let data=response.data
+            let response=await axios.get(`api/conversation`)
+            let [data,status]=response.data
             if(data.status=='success'){
                 let conversations=data.conversations
                 commit('getConversations',conversations)
@@ -201,8 +204,8 @@ const store=createStore({
             console.log(data.message);
         },
         async getConversation({commit},conversation_id){
-            let response=await axios.get(`conversation/${conversation_id}`)
-            let data=response.data
+            let response=await axios.get(`api/conversation/${conversation_id}`)
+            let [data,status]=response.data
             if(data.status=='success'){
                 let {id,title,messages}=data.conversation
                 commit('getConversation',{id,title})
@@ -211,10 +214,10 @@ const store=createStore({
             console.log(data.message);
         },
         async addConversation({commit},title){
-            let response=await axios.post(`conversation`,JSON.stringify({
+            let response=await axios.post(`api/conversation`,JSON.stringify({
                 'title':title
             }))
-            let data=response.data
+            let [data,status]=response.data
             let conversation=null
             if(data.status=='success'){
                 conversation=data.conversation
@@ -225,8 +228,8 @@ const store=createStore({
             return conversation
         },
         async editConversation({commit},{id,title}){
-            let response=await axios.patch(`conversation/${id}`,JSON.stringify({'title':title}))
-            let data=response.data
+            let response=await axios.patch(`api/conversation/${id}`,JSON.stringify({'title':title}))
+            let [data,status]=response.data
             if(data.status=='success'){
                 let conversation=data.conversation
                 commit('editConversation',conversation)
@@ -234,8 +237,8 @@ const store=createStore({
             console.log(data.message);
         },
         async deleteConversation({commit},id){
-            let response=await axios.delete(`conversation/${id}`)
-            let data=response.data
+            let response=await axios.delete(`api/conversation/${id}`)
+            let [data,status]=response.data
             if(data.status=='success'){
                 commit('deleteConversation',id)
                 commit('getMessages',[])
@@ -243,24 +246,28 @@ const store=createStore({
             console.log(data.message);
         },
         async addMessage({commit},message){
-            let response=await axios.post(`message`,JSON.stringify(message))
-            let data=response.data
+            let response=await axios.post(`api/message`,JSON.stringify(message))
+            let [data,status]=response.data
             if(data.status=='success'){
                 let message=data.current_message
                 commit('addMessage',message)
             }
             console.log(data.message);
         },
-        async signinUser({commit},{username,password}){
-            let response=await axios.post(`user/signin`,JSON.stringify({username,password}))
-            let data=response.data
+        async signinUser({commit},{username,password,redirect}){
+            let response=await axios.post(`api/user/signin`,JSON.stringify({username,password}))
+            let [data,status]=response.data
             if(data.status=='success'){
-                let current_user=data.current_user
-                commit('signinUser',current_user)
+                let token=data.token
+                sessionStorage.setItem('auth_token',token.access_token)
+                commit('isAuthenticated')
+                if(redirect){
+                    let path=decodeURIComponent(redirect)
+                    router.push(path)
+                }
             }
-            console.log(data.message);      
-        }
-        
+            console.log(data.message);
+        } 
     }
 })
 

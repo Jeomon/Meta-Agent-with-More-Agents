@@ -4,6 +4,7 @@ from api.init_database import engine
 from api.models import User,Agent,Tool
 from pydantic import BaseModel,Field
 from api.user import get_current_user
+from uuid import UUID
 
 agent=APIRouter(prefix='/api/agent',tags=['Agent'])
 
@@ -15,7 +16,7 @@ def get_agents(current_user:dict=Depends(get_current_user)):
                 'status':'error',
                 'message':'You need to be authenticated to access this route.'
             },status.HTTP_401_UNAUTHORIZED
-        current_user=User(**current_user)
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         agents=session.exec(select(Agent).where(Agent.user==current_user)).all()
         return {
             'status':'success',
@@ -36,7 +37,7 @@ def add_agent(data:AgentData,current_user:dict=Depends(get_current_user)):
                 'status':'error',
                 'message':'You need to be authenticated to access this route.'
             },status.HTTP_401_UNAUTHORIZED
-        current_user=User(**current_user)
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_agent = session.exec(select(Agent).where(Agent.user == current_user,Agent.name == data.name)).first()
         if existing_agent:
             return {
@@ -61,14 +62,14 @@ def add_agent(data:AgentData,current_user:dict=Depends(get_current_user)):
             },status.HTTP_201_CREATED
 
 @agent.delete('/delete/{id}')
-def delete_agent(id:str,current_user:dict=Depends(get_current_user)):
+def delete_agent(id:UUID,current_user:dict=Depends(get_current_user)):
     with Session(engine) as session:
         if current_user is None:
             return {
                 'status':'error',
                 'message':'You need to be authenticated to access this route.'
             },status.HTTP_401_UNAUTHORIZED
-        current_user=User(**current_user)
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_agent=session.exec(select(Agent).where(Agent.user==current_user,Agent.id==id)).first()
         if existing_agent:
             session.delete(existing_agent)

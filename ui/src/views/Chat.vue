@@ -28,12 +28,6 @@ export default {
             socket: null
         }
     },
-    mounted() {
-  
-    },
-    methods:{
-    
-    },
     components: {
       QueryPanel,UserPanel,HistoryPanel,ChatPanel,LogoPanel
     }

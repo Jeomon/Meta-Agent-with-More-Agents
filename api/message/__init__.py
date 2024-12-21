@@ -20,8 +20,8 @@ def add_message(data:MessageData,current_user:dict=Depends(get_current_user)):
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_conversation=session.exec(select(Conversation).where(Conversation.user==current_user,Conversation.id==data.conversation_id)).first()
         if existing_conversation:
             message = Message(**{

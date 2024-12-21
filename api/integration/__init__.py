@@ -3,6 +3,7 @@ from sqlmodel import Session,select
 from api.init_database import engine
 from api.models import User,Integration
 from api.user import get_current_user
+from uuid import UUID
 
 integration=APIRouter(prefix='/api/integration',tags=['Integration'])
 
@@ -13,8 +14,8 @@ def get_integrations(current_user:dict=Depends(get_current_user)):
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         integrations=session.exec(select(Integration).where(Integration.user==current_user)).all()
         return {
             'status':'success',
@@ -29,8 +30,8 @@ def add_integration(integration:Integration,current_user:dict=Depends(get_curren
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_integration=session.exec(select(Integration).where(Integration.user==current_user,Integration.name==integration.name)).first()
         if existing_integration:
             return {
@@ -54,8 +55,8 @@ def edit_integration(integration:Integration,current_user:dict=Depends(get_curre
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_integration = session.exec(select(Integration).where(
             Integration.user == current_user,
             Integration.id == integration.id,
@@ -76,14 +77,14 @@ def edit_integration(integration:Integration,current_user:dict=Depends(get_curre
             },status.HTTP_404_NOT_FOUND
 
 @integration.delete('/{id}')
-def delete_integration(id:int,current_user:dict=Depends(get_current_user)):
+def delete_integration(id:UUID,current_user:dict=Depends(get_current_user)):
     if current_user is None:
         return {
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_integration=session.exec(select(Integration).where(Integration.user==current_user,Integration.id==id)).first()
         if not existing_integration:
             return {

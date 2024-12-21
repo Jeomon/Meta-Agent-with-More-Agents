@@ -9,6 +9,7 @@ from api.models import User,Tool
 from api.user import get_current_user
 from dotenv import load_dotenv
 from os import environ
+from uuid import UUID
 
 load_dotenv()
 
@@ -24,8 +25,8 @@ def get_tools(current_user:dict=Depends(get_current_user)):
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         tools=session.exec(select(Tool).where(Tool.user==current_user)).all()
         return {
             'status':'success',
@@ -43,7 +44,6 @@ def add_tool(tool:ToolDefinition,current_user:dict=Depends(get_current_user)):
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     tool_data=tool_to_ast(tool.tool_definition)
     if not tool_data.get('error'):
         tool_name=tool_data.get('tool_name')
@@ -51,6 +51,7 @@ def add_tool(tool:ToolDefinition,current_user:dict=Depends(get_current_user)):
         description=tool_data.get('description')
         tool_definition=tool_data.get('tool')
         with Session(engine) as session:
+            current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
             existing_tool = session.exec(select(Tool).where(Tool.user == current_user,Tool.name == tool_name)).first()
             if existing_tool:
                 return {
@@ -100,14 +101,14 @@ def generate_tool(data:Query,current_user:dict=Depends(get_current_user)):
     },status.HTTP_200_OK
 
 @tool.delete('/delete/{id}')
-def delete_tool(id:str,current_user:dict=Depends(get_current_user)):
+def delete_tool(id:UUID,current_user:dict=Depends(get_current_user)):
     if current_user is None:
         return {
             'status':'error',
             'message':'You need to be authenticated to access this route.'
         },status.HTTP_401_UNAUTHORIZED
-    current_user=User(**current_user)
     with Session(engine) as session:
+        current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
         existing_tool=session.exec(select(Tool).where(Tool.user==current_user,Tool.id==id)).first()
         if existing_tool:
             remove_tool_from_module('experimental.py',{

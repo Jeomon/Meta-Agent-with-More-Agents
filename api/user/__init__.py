@@ -1,5 +1,5 @@
-from fastapi import APIRouter,status,Depends
-from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
+from fastapi import APIRouter,status,Body,Depends
+from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session,select
 from api.init_database import engine
 from api.models import User
@@ -45,8 +45,8 @@ def get_current_user(token:Annotated[str,Depends(oauth2_scheme)])->dict|None:
 
 
 @user.post('/signin')
-def user_signin(form_data:Annotated[OAuth2PasswordRequestForm,Depends()]):
-    user=authenticate_user(form_data.username,form_data.password)
+def user_signin(credentials:Annotated[UserData,Body()]):
+    user=authenticate_user(credentials.username,credentials.password)
     if not user:
         return {
             'status':'error',
