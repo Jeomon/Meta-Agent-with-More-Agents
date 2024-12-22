@@ -32,7 +32,7 @@ class Conversation(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     title: str=Field(nullable=False,description='The title of the conversation')
     user_id:UUID = Field(foreign_key="user.id",nullable=False)
-    messages: List["Message"] = Relationship(back_populates="conversation",sa_relationship_kwargs={'cascade':"save-update, merge"})
+    messages: List["Message"] = Relationship(back_populates="conversation",sa_relationship_kwargs={'cascade': "all, delete-orphan"})
     user: 'User' = Relationship(back_populates="conversations",sa_relationship_kwargs={'cascade':"save-update, merge"})
 
 class Message(SQLModel, table=True):
@@ -40,7 +40,7 @@ class Message(SQLModel, table=True):
     role: str=Field(nullable=False,description='The role of the message')
     content: str=Field(nullable=False,description='The content of the message')
     timestamp: datetime = Field(default_factory=datetime.now)
-    session_id: UUID = Field(foreign_key="conversation.id")
+    session_id: UUID = Field(foreign_key="conversation.id",nullable=False)
     conversation: Conversation = Relationship(back_populates="messages")
 
 class User(SQLModel, table=True):

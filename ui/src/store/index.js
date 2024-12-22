@@ -73,10 +73,12 @@ const store=createStore({
             state.integrations.push(integration)
         },
         editIntegration(state,{id,name,key}){
-            let integration=state.integrations.find(integration=>integration.id==id)
-            state.integrations=state.integrations.filter(integration=>integration.id!=id)
-            integration.key=key
-            state.integrations.push(integration)
+            state.integrations=state.integrations.map(integration=>{
+                if(integration.id==id){
+                    integration.key=key
+                }
+                return integration
+            })
         },
         deleteIntegration(state,id){
             state.integrations=state.integrations.filter(integration=>integration.id!=id)
@@ -88,13 +90,15 @@ const store=createStore({
             state.conversation={id,title}
         },
         addConversation(state,conversation){
-            state.conversations.push(conversation)
+            state.conversations.unshift(conversation)
         },
         editConversation(state,{id,title}){
-            let conversation=state.conversations.find(conversation=>conversation.id==id)
-            state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
-            conversation.title=title
-            state.conversations.push(conversation)
+            state.conversations=state.conversations.map(conversation=>{
+                if(conversation.id==id){
+                    conversation.title=title
+                }
+                return conversation
+            })
         },
         deleteConversation(state,id){
             state.conversations=state.conversations.filter(conversation=>conversation.id!=id)
@@ -198,7 +202,7 @@ const store=createStore({
             let response=await axios.get(`api/conversation`)
             let [data,status]=response.data
             if(data.status=='success'){
-                let conversations=data.conversations
+                let conversations=data.conversations.reverse()
                 commit('getConversations',conversations)
             }
             console.log(data.message);
@@ -207,6 +211,7 @@ const store=createStore({
             let response=await axios.get(`api/conversation/${conversation_id}`)
             let [data,status]=response.data
             if(data.status=='success'){
+                console.log(data);
                 let {id,title,messages}=data.conversation
                 commit('getConversation',{id,title})
                 commit('getMessages',messages)

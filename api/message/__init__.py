@@ -4,7 +4,7 @@ from api.init_database import engine
 from api.models import Conversation,User,Message
 from api.user import get_current_user
 from sqlmodel import Session,select
-
+from uuid import UUID
 
 message=APIRouter(prefix='/api/message',tags=['Message'])
 
@@ -22,7 +22,7 @@ def add_message(data:MessageData,current_user:dict=Depends(get_current_user)):
         },status.HTTP_401_UNAUTHORIZED
     with Session(engine) as session:
         current_user=session.exec(select(User).where(User.id==current_user.get('id'))).first()
-        existing_conversation=session.exec(select(Conversation).where(Conversation.user==current_user,Conversation.id==data.conversation_id)).first()
+        existing_conversation=session.exec(select(Conversation).where(Conversation.user==current_user,Conversation.id==UUID(data.conversation_id))).first()
         if existing_conversation:
             message = Message(**{
                 'role':data.role,

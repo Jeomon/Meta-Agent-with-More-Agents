@@ -37,7 +37,11 @@ def get_conversation(id:UUID,current_user:dict=Depends(get_current_user)):
         if existing_conversation:
             return {
                 'status': 'success',
-                'conversation': existing_conversation.model_dump(include={'messages':{'model':Message}}),
+                'conversation': {
+                    'id': existing_conversation.id,
+                    'title': existing_conversation.title,
+                    'messages': existing_conversation.messages
+                },
                 'message': f'Messages of the conversation {id} fetched successfully.'
             },status.HTTP_200_OK
         else:
