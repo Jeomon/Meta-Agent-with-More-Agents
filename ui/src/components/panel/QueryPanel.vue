@@ -12,6 +12,7 @@ export default {
   data() {
     return {
       currentConversation:null,
+      switchConversation:false,
       socket: null,
       query:''
     };
@@ -24,8 +25,9 @@ export default {
     this.socket = new WebSocket('ws://localhost:8000/ws');
     let conversations =await this.$store.dispatch('getConversations')
     this.currentConversation=conversations.find(conversation => conversation.length==0)
-    if(!this.currentConversation){
+    if(this.currentConversation){
       this.$store.commit('getMessages',[])
+      this.switchConversation=true
     }
 
     // Ensure the socket connection is established before trying to send messages
@@ -60,11 +62,11 @@ export default {
         textarea.style.height = `${newHeight}px`;
       }
     },
-    async submitQuery() {;
+    async submitQuery() {
+      console.log(this.switchConversation);
+      
       if (this.query.length>0) {
-        if(!this.currentConversation){
-          this.currentConversation=this.getConversation
-        }
+        this.currentConversation=this.switchConversation?this.currentConversation:this.getConversation
         // Only send the message if the socket is open
         if (this.socket.readyState === WebSocket.OPEN) {
             if (!this.currentConversation.id){
@@ -80,6 +82,7 @@ export default {
         else {
           console.error('WebSocket is not open. Unable to send message.');
         }
+        this.switchConversation=false
       }
     }
   }
