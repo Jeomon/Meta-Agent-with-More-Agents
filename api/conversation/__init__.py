@@ -20,7 +20,11 @@ def get_conversations(current_user:dict=Depends(get_current_user)):
         conversations=session.exec(select(Conversation).where(Conversation.user==current_user)).all()
         return {
             'status':'success',
-            'conversations':conversations,
+            'conversations':[{
+                'id':conversation.id,
+                'title':conversation.title,
+                'length':len(conversation.messages),
+            }for conversation in conversations],
             'message':'Conversations fetched successfully.'
         },status.HTTP_200_OK
      
@@ -68,8 +72,12 @@ def add_conversation(data:ConversationData,current_user:dict=Depends(get_current
         session.refresh(conversation)
     return {
         'status':'success',
-        'conversation':conversation.model_dump(),
-        'message':'Conversation created successfully.'
+        'conversation':{
+            'id':conversation.id,
+            'title':conversation.title,
+            'length':0
+        },
+        'message':f'Conversation {conversation.id} created successfully.'
     },status.HTTP_201_CREATED
 
 @conversation.patch('/{id}')

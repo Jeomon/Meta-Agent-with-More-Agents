@@ -11,17 +11,22 @@ import { mapGetters } from 'vuex';
 export default {
   data() {
     return {
-      current_conversation:null,
+      currentConversation:null,
       socket: null,
       query:''
     };
   },
   computed: {
-    ...mapGetters(['getConversation'])
+    ...mapGetters(['getConversation','getConversations'])
   },
-  mounted() {
+  async mounted() {
     this.heightAdjust();
     this.socket = new WebSocket('ws://localhost:8000/ws');
+    let conversations =await this.$store.dispatch('getConversations')
+    this.currentConversation=conversations.find(conversation => conversation.length==0)
+    if(!this.currentConversation){
+      this.$store.commit('getMessages',[])
+    }
 
     // Ensure the socket connection is established before trying to send messages
     this.socket.onopen = () => {
@@ -31,7 +36,7 @@ export default {
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if(data.output){
-        this.$store.dispatch('addMessage',{role: 'assistant', content: data.output, conversation_id:this.current_conversation.id});
+        this.$store.dispatch('addMessage',{role: 'assistant', content: data.output, conversation_id:this.currentConversation.id});
       }
     };
 
@@ -44,7 +49,7 @@ export default {
     };
   },
   computed:{
-    ...mapGetters(['getConversation','getMessages'])
+    ...mapGetters(['getConversation','getMessages','getConversations'])
   },
   methods: {
     heightAdjust() {
@@ -57,16 +62,18 @@ export default {
     },
     async submitQuery() {;
       if (this.query.length>0) {
-        this.current_conversation=this.getConversation
+        if(!this.currentConversation){
+          this.currentConversation=this.getConversation
+        }
         // Only send the message if the socket is open
         if (this.socket.readyState === WebSocket.OPEN) {
-            if (!this.current_conversation.id){
-              this.current_conversation=await this.$store.dispatch('addConversation',this.query)
+            if (!this.currentConversation.id){
+              this.currentConversation=await this.$store.dispatch('addConversation',this.query)
             }
-            else if (this.current_conversation.id&&this.getMessages.length==0){
-              this.$store.dispatch('editConversation',{'id':this.current_conversation.id,'title':this.query})
+            else if (this.currentConversation.id&&this.getMessages.length==0){
+              this.$store.dispatch('editConversation',{'id':this.currentConversation.id,'title':this.query})
             }
-            await this.$store.dispatch('addMessage',{role: 'user', content: this.query, conversation_id:this.current_conversation.id});
+            await this.$store.dispatch('addMessage',{role: 'user', content: this.query, conversation_id:this.currentConversation.id});
             await this.socket.send(this.query);
             this.query = ''; // Clear the textarea after sending
         }

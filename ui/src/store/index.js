@@ -38,6 +38,12 @@ const store=createStore({
     mutations:{
         addMessage(state, message) {
             state.messages.push(message)
+            state.conversations=state.conversations.map(conversation=>{
+                if(conversation.id==message.session_id){
+                    conversation.length+=1
+                }
+                return conversation
+            })
         },
         updateMessage(state, {id, content}) {
             const message = state.messages.find(message => message.id === id)
@@ -90,7 +96,8 @@ const store=createStore({
             state.conversation={id,title}
         },
         addConversation(state,conversation){
-            state.conversations.unshift(conversation)
+            state.conversations.unshift({id:conversation.id,title:conversation.title,length:conversation.length})
+            state.conversation={id:conversation.id,title:conversation.title}
         },
         editConversation(state,{id,title}){
             state.conversations=state.conversations.map(conversation=>{
@@ -204,6 +211,7 @@ const store=createStore({
             if(data.status=='success'){
                 let conversations=data.conversations.reverse()
                 commit('getConversations',conversations)
+                return conversations
             }
             console.log(data.message);
         },
@@ -227,7 +235,6 @@ const store=createStore({
             if(data.status=='success'){
                 conversation=data.conversation
                 commit('addConversation',conversation)
-                commit('getMessages',[])
             }
             console.log(data.message);
             return conversation
@@ -256,6 +263,8 @@ const store=createStore({
             if(data.status=='success'){
                 let message=data.current_message
                 commit('addMessage',message)
+                console.log(message);
+                
             }
             console.log(data.message);
         },

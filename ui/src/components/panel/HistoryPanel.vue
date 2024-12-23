@@ -5,7 +5,7 @@
     </div>
     <hr>
     <div v-if="getConversations.length>0" class="flex flex-col my-2 gap-y-1 text-base">
-        <Conversation @click="()=>getConversation(conversation.id)" v-for="conversation in getConversations" :key="conversation.id" :conversation="conversation"/>
+        <Conversation :class="{'hidden':conversation.length==0}" @click="()=>getConversation(conversation.id)" v-for="conversation in getConversations" :key="conversation.id" :conversation="conversation"/>
     </div>
     <div v-else class="flex flex-row items-center justify-center h-[75%]">
         <span class="text-lg italic">No conversations found...</span>
@@ -18,17 +18,28 @@ import Conversation from '../card/Conversation.vue';
 export default {
     data(){
         return {
+            newConversation:null
         }
     },
     computed:{
-        ...mapGetters(['getConversations'])
+        ...mapGetters(['getConversations','getMessages'])
     },
-    mounted(){
-        this.$store.dispatch('getConversations')
+    async mounted(){
+        let conversations =await this.$store.dispatch('getConversations')
+        console.log(conversations);
+        this.newConversation=conversations.find(conversation => conversation.length==0)
     },
     methods:{
-        createConversationHandler(){
-            this.$store.dispatch('addConversation','Untitled Conversation')
+        async createConversationHandler(){
+            if(this.getConversations.every(conversation => conversation.length > 0)){
+                this.newConversation=await this.$store.dispatch('addConversation','Untitled Conversation')
+            }
+            else{                  
+                let id=this.newConversation.id
+                let title=this.newConversation.title
+                this.$store.commit('getConversation',{id,title})
+            }
+            this.$store.commit('getMessages',[])
         },
         getConversation(conversation_id){
             this.$store.dispatch('getConversation',conversation_id)
